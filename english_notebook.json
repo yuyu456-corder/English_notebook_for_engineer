@@ -107,5 +107,9 @@
   "delegate": "使節、指名する",
   "intact": "完全で",
   "subject": "科目、主題",
-  "arbitrary": "任意の"
+  "arbitrary": "任意の",
+  "too few arguments": "少なすぎる引数（too ~ で～過ぎるの意）",
+  "identifier": "識別子",
+  "excess": "過多",
+  "unary": "単項"
 }
