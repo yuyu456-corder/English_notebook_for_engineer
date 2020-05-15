@@ -35,6 +35,8 @@ int main(void)
   char get_value[256][256] = {};
   /*JSONから取得した値（value）を格納するポインタ配列*/
   char *get_json_value_pointer[STR_MAX_ROW] = {};
+  /*読み込んだJSONの行数*/
+  int get_max_record = 0;
 
   /*JSONの型を判別する用の型を定義する*/
   JSON_TYPE check_type;
@@ -44,7 +46,10 @@ int main(void)
   if (fp != NULL)
   {
 
-    /*ファイルから1文字ずつ読み込み、1行ずつ格納していく*/
+    /*
+    ファイルから1文字ずつ読み込み、1行ずつ格納する
+    その1行からJSON(value)の値を取得する
+    */
     for (int i = 0; fgets(get_str[i], STR_MAX_ROW, fp) != NULL; i++)
     {
       printf("============================================================\n");
@@ -73,14 +78,17 @@ int main(void)
       while (buffer_counter != get_value_buffer_size)
       {
         printf("buffer counter: %d \n", buffer_counter);
-        /*マルチバイト文字を検知したらそのバイト分ポインタをずらす*/
+        /*マルチバイト文字を検知したらそれ以降の文字を文字列リテラルとして取得する*/
         if (isprint(*(get_json_value_address + buffer_counter)) == 0)
         {
-          /*マルチバイト文字の最初の先頭1バイトへのアドレスを取得する*/
+          /*
+          マルチバイト文字の最初の先頭1バイトへのアドレスを取得する
+          get_json_value_pointerは各行のJSONの値（value）の最初の先頭へのポインタを指す
+          */
           get_json_value_pointer[i] = get_json_value_address + buffer_counter;
           printf("index: %d, get value: %s \n", i, get_json_value_pointer[i]);
-          /*マルチバイト文字分ポインタをずらす*/
-          buffer_counter = buffer_counter + MULTI_BYTE_STR;
+          /*マルチバイト文字を取得したのでこの行の処理は終了する*/
+          break;
         }
         /*マルチバイト文字以外は1バイト分ポインタをずらす*/
         else
@@ -89,8 +97,12 @@ int main(void)
         }
       }
 
+      /*JSONの行数をカウントする*/
+      ++get_max_record;
       printf("\n");
     }
+
+    printf("get records: %d", get_max_record);
 
     /*読み込んだ文字のJSONデータ型ごとに変数に格納する*/
     // switch(check_type){
