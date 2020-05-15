@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 /*JSONの型を一意に判別できるようにJSON_TYPE型を定義*/
 typedef enum
@@ -14,6 +15,8 @@ typedef enum
 
 /*読み込むファイルの一行の最大文字数（データ数）*/
 #define STR_MAX_ROW 100
+/*全角文字のバイト数*/
+#define MULTI_BYTE_STR 3
 
 int main(void)
 {
@@ -28,8 +31,10 @@ int main(void)
     1行ずつ読み込むことを想定して2次元配列にしている
   */
   char get_str[256][256] = {};
-  /*読み込んだ文字列の値を格納する*/
+  /*読み込んだ文字列の値（value）部分を行ごとに格納する*/
   char get_value[256][256] = {};
+  /*JSONから取得した値（value）を格納するポインタ配列*/
+  char *get_json_value_pointer[STR_MAX_ROW] = {};
 
   /*JSONの型を判別する用の型を定義する*/
   JSON_TYPE check_type;
@@ -54,20 +59,34 @@ int main(void)
       /*文字列の最後からダブルクォーテーションを探索する*/
       char *double_quotation_address = strrchr(get_str[i], (int)'\"');
       printf("colon_address: %d, double_quotation_address: %d \n", colon_address, double_quotation_address);
+
+      /*JSONの値部分のメモリサイズを計算する*/
       int get_value_buffer_size = (int)(double_quotation_address - colon_address);
-      char *get_value_address = (char *)colon_address + 1;
       printf("get_value_buffer_size: %d \n", get_value_buffer_size);
-      printf("get_value_address: %d \n", get_value_address);
+
+      /*JSONの値部分の先頭ポインタを取得する*/
+      char *get_json_value_address = (char *)colon_address + 1;
+      printf("get_json_value_address: %d \n", get_json_value_address);
 
       /*取得したポインタから値(value)を1文字ずつ参照する*/
-      /*get_value_addressは取得した行の値部分の先頭を指すポインタ*/
       int buffer_counter = 0;
-      printf("get_value: ");
       while (buffer_counter != get_value_buffer_size)
       {
-        printf("%c", *get_value_address);
-        *get_value_address = *(get_value_address + buffer_counter);
-        ++buffer_counter;
+        printf("buffer counter: %d \n", buffer_counter);
+        /*マルチバイト文字を検知したらそのバイト分ポインタをずらす*/
+        if (isprint(*(get_json_value_address + buffer_counter)) == 0)
+        {
+          /*マルチバイト文字の最初の先頭1バイトへのアドレスを取得する*/
+          get_json_value_pointer[i] = get_json_value_address + buffer_counter;
+          printf("index: %d, get value: %s \n", i, get_json_value_pointer[i]);
+          /*マルチバイト文字分ポインタをずらす*/
+          buffer_counter = buffer_counter + MULTI_BYTE_STR;
+        }
+        /*マルチバイト文字以外は1バイト分ポインタをずらす*/
+        else
+        {
+          ++buffer_counter;
+        }
       }
 
       printf("\n");
