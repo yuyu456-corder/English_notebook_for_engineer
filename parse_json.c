@@ -15,8 +15,8 @@ typedef enum
 
 /*読み込むファイルの一行の最大文字数（データ数）*/
 #define STR_MAX_ROW 1000
-/*パースされたJSONのstring型を格納最大数*/
-#define GET_MAX_STRING_TYPE 1000
+/*読み込むファイルの最大行数*/
+#define MAX_RECORDS 1000
 /*マルチバイト文字のバイト数*/
 #define MULTI_CHAR_BYTE 3
 /*テスト用に制限する読み込み行数*/
@@ -37,8 +37,10 @@ int main(void)
   char get_str[256][256] = {};
   /*読み込んだJSONの行数*/
   int get_max_records = 0;
-  /*JSONから取得した値（value）を格納するポインタ配列*/
-  char *get_json_value_pointer[GET_MAX_STRING_TYPE] = {};
+  /*JSONから取得した値(key)を格納するポインタ配列*/
+  char *get_json_key_pointer[MAX_RECORDS] = {};
+  /*JSONから取得した値(value)を格納するポインタ配列*/
+  char *get_json_value_pointer[MAX_RECORDS] = {};
 
   /*JSONの型を判別する用の型を定義する*/
   JSON_TYPE check_type;
@@ -62,13 +64,15 @@ int main(void)
       ++get_max_records;
 
       /*
-      取得した1行から値（value）部分を取り出す
-      JSONファイルを想定してコロンとカンマのポインタの差分から取得する
+      取得した1行からkeyとvalue部分を取り出す
+      keyは最初のダブルクォーテーションを先頭ポインタとし2回目のダブルクォーテーションを削除し取得する
+      valueはコロンとカンマのポインタの差分から取得する
       */
       char *colon_address = strchr(get_str[index], (int)':');
       char *comma_address = strchr(get_str[index], (int)',');
+      char *double_quotation_address_key_first = strchr(get_str[index], (int)'\"');
 
-      printf("colon_address: %d, comma_address: %d \n", colon_address, comma_address);
+      printf("colon_address: %d, comma_address: %d, double_quotation_address: %d \n", colon_address, comma_address, double_quotation_address_key_first);
 
       /*JSONの値部分のメモリサイズを計算する*/
       int get_value_buffer_size = (int)(comma_address - colon_address);
@@ -86,13 +90,22 @@ int main(void)
       }
       printf("get_value_buffer_size: %d \n", get_value_buffer_size);
 
-      /*JSONの値部分の先頭ポインタを取得する*/
+      /*key部分の先頭ポインタを取得する*/
+      char *get_json_key_address = (char *)double_quotation_address_key_first + 1;
+      printf("get_json_key_address: %d \n", get_json_key_address);
+      /*value部分の先頭ポインタを取得する*/
       char *get_json_value_address = (char *)colon_address + 1;
       printf("get_json_value_address: %d \n", get_json_value_address);
 
-      /*value部分を取得する*/
+      /*1行ごとに取得したkey部分を加工する為の配列型のポインタに格納する*/
+      get_json_key_pointer[index] = get_json_key_address;
+      /*1行ごとに取得したvalue部分を加工する為の配列型のポインタに格納する*/
       get_json_value_pointer[index] = get_json_value_address;
-      printf("index: %d, get value: %s \n", index, get_json_value_pointer[index]);
+
+      /*key部分を取得する*/
+      char *double_quotation_address_key_second = strchr(get_json_key_pointer[index], (int)'\"');
+      *double_quotation_address_key_second = '\0';
+      printf("index: %d, get key> %s \n", index, get_json_key_pointer[index]);
 
       /*取得した値部分からJSONの型を検知する*/
       // switch (check_type)
@@ -109,15 +122,15 @@ int main(void)
       int buffer_counter = 0;
 
       /*1,2文字目ダブルクォーテーションのポインタを取得*/
-      char *double_quotation_address_first = strchr(get_json_value_pointer[index], (int)'\"');
-      char *double_quotation_address_second = strrchr(get_json_value_pointer[index], (int)'\"');
+      char *double_quotation_address_string_first = strchr(get_json_value_pointer[index], (int)'\"');
+      char *double_quotation_address_string_second = strrchr(get_json_value_pointer[index], (int)'\"');
 
       /*2文字目のダブルクォーテーションを削除する*/
-      *double_quotation_address_second = '\0';
+      *double_quotation_address_string_second = '\0';
 
       /*文字列部分を取得する*/
-      get_json_value_pointer[index] = double_quotation_address_first + 1;
-      printf("index: %d, get value string: %s \n", index, get_json_value_pointer[index]);
+      get_json_value_pointer[index] = double_quotation_address_string_first + 1;
+      printf("index: %d, get value string> %s \n", index, get_json_value_pointer[index]);
 
       /*テスト用に読み込む行数を制限する*/
       if (index > INPUT_MAX_RECORDS)
@@ -128,8 +141,8 @@ int main(void)
 
     /* tmp MEMO */
     // int j = 0;
-    // printf("check value lead address: %d \n",get_json_value_pointer[j+1]); //value1 lead address1
-    // printf("check value lead address: %d \n",get_json_value_pointer[j+2]); //value2 lead address2
+    // printf("check value lead address: %d \n",get_json_value_pointer[j+1]); //value1 lead address
+    // printf("check value lead address: %d \n",get_json_value_pointer[j+2]); //value2 lead address
     // printf("check value lead address: %d \n",get_json_value_pointer[j+3]); //same as above
 
     // int k = 0;
@@ -139,7 +152,7 @@ int main(void)
 
     printf("==file inputting process done==");
     fclose(fp);
-    return 0;
+    return 0;]
   }
 
   /*ファイルの読み込みに失敗した場合*/
