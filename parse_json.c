@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include "header.h"
 
 /*JSONの型を一意に判別できるようにJSON_TYPE型を定義*/
 typedef enum
@@ -15,14 +16,22 @@ typedef enum
 
 /*読み込むファイルの一行の最大文字数（データ数）*/
 #define STR_MAX_ROW 1000
-/*読み込むファイルの最大行数*/
-#define MAX_RECORDS 1000
 /*マルチバイト文字のバイト数*/
 #define MULTI_CHAR_BYTE 3
 /*テスト用に制限する読み込み行数*/
 #define INPUT_MAX_RECORDS 5
 
-int main(void)
+/*グローバル変数の宣言*/
+char *get_json_key_pointer[MAX_RECORDS];
+char *get_json_value_pointer[MAX_RECORDS];
+
+/*
+*@brief JSONからkeyとValueを取り出す関数
+*@param void
+*@return: 0(ファイル読み込み成功),-1(ファイル読み込み失敗)
+*@detail: この関数が呼ばれるとグローバル変数で配列にkeyとvalueの先頭ポインタが一行ずつ格納されていく
+*/
+int parse_json(void)
 {
 
   FILE *fp;
@@ -37,15 +46,9 @@ int main(void)
   char get_str[256][256] = {};
   /*読み込んだJSONの行数*/
   int get_max_records = 0;
-  /*JSONから取得した値(key)を格納するポインタ配列*/
-  char *get_json_key_pointer[MAX_RECORDS] = {};
-  /*JSONから取得した値(value)を格納するポインタ配列*/
-  char *get_json_value_pointer[MAX_RECORDS] = {};
 
   /*JSONの型を判別する用の型を定義する*/
   JSON_TYPE check_type;
-
-  /*check_type内のJSONのデータ型を区別する*/
 
   if (fp != NULL)
   {
@@ -150,12 +153,13 @@ int main(void)
     // printf("check value get: %s \n",get_json_value_pointer[k+2]); //value2
     // printf("check value get: %s \n",get_json_value_pointer[k+3]); //same as above
 
-    printf("==file inputting process done==");
+    printf("==file inputting process done== \n");
     fclose(fp);
-    return 0;]
+
+    return 0;
   }
 
   /*ファイルの読み込みに失敗した場合*/
-  printf("==file inputting failed==");
+  printf("==file inputting failed== \n");
   return -1;
 }
