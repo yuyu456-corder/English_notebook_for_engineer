@@ -23,5 +23,6 @@ yarn-error.log*
 *.sln
 *.sw?
 
-# exe files
+# コンパイル時に出てくる実行ファイルやオブジェクトファイル
 *.exe
+*.o
