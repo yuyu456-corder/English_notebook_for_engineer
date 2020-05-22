@@ -36,16 +36,16 @@ int parse_json(void)
 
   FILE *fp;
   /*読み込むファイルの設定*/
-  char *filename = "english_notebook.json";
-  fp = fopen(filename, "r+");
+  char *file_name = "english_notebook.json";
+  fp = fopen(file_name, "r+");
 
   /*
     読み込むファイルの文字列を格納する配列
     1行ずつ読み込むことを想定して2次元配列にしている
   */
   char get_str[256][256] = {};
-  /*読み込んだJSONの行数*/
-  int get_max_records = 0;
+  /*読み込んだ単語数*/
+  int get_max_words = 0;
 
   /*JSONの型を判別する用の型を定義する*/
   JSON_TYPE check_type;
@@ -62,9 +62,6 @@ int parse_json(void)
       printf("============================================================\n");
       printf("index:%d \n", index);
       printf("get_str: %s \n", get_str[index]); //"key": "value"
-
-      /*JSONの行数をカウントする*/
-      ++get_max_records;
 
       /*
       取得した1行からkeyとvalue部分を取り出す
@@ -136,10 +133,10 @@ int parse_json(void)
       printf("index: %d, get value string> %s \n", index, get_json_value_pointer[index]);
 
       /*テスト用に読み込む行数を制限する*/
-      if (index > INPUT_MAX_RECORDS)
-      {
-        break;
-      }
+      // if (index > INPUT_MAX_RECORDS)
+      // {
+      //   break;
+      // }
     }
 
     /* tmp MEMO */
