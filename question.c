@@ -27,7 +27,7 @@ int question(void)
   while (1)
   {
     /*問題出力用に乱数を取得する*/
-    int random_num = (int)(rand() * (100 - 1 + 1.0) / (1.0 + RAND_MAX));
+    int random_num = (int)(rand() * (get_max_words - 1 + 1.0) / (1.0 + RAND_MAX));
     /*解答入力用の文字*/
     char answer_str[256] = {};
 

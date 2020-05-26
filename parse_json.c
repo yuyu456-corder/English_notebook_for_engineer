@@ -24,6 +24,8 @@ typedef enum
 /*グローバル変数の宣言*/
 char *get_json_key_pointer[MAX_RECORDS];
 char *get_json_value_pointer[MAX_RECORDS];
+/*単語数のカウントはこのプログラムで行うためここのみ1で初期化している*/
+int get_max_words = 1;
 
 /*
 *@brief JSONからkeyとValueを取り出す関数
@@ -44,8 +46,6 @@ int parse_json(void)
     1行ずつ読み込むことを想定して2次元配列にしている
   */
   char get_str[256][256] = {};
-  /*読み込んだ単語数*/
-  int get_max_words = 0;
 
   /*JSONの型を判別する用の型を定義する*/
   JSON_TYPE check_type;
@@ -131,6 +131,9 @@ int parse_json(void)
       /*文字列部分を取得する*/
       get_json_value_pointer[index] = double_quotation_address_string_first + 1;
       printf("index: %d, get value string> %s \n", index, get_json_value_pointer[index]);
+
+      /*単語数をカウントする*/
+      ++get_max_words;
 
       /*テスト用に読み込む行数を制限する*/
       // if (index > INPUT_MAX_RECORDS)
