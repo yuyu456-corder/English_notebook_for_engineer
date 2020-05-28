@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 /dist
+.vs/
 
 # 公開したくない環境変数
 .env

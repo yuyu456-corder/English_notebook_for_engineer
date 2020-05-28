@@ -55,5 +55,5 @@ ITエンジニア特有の単語や高校英語以上レベルの単語を覚え
 
 ## 開発環境
 
-- VSCode/Git
+- Visual Studio 2019/Git
 - C(MinGW/gcc)
