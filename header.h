@@ -7,13 +7,14 @@
 
 //グローバル変数
 //JSONからパースしたkeyとvalueを保持する
-extern char *get_json_key_pointer[MAX_RECORDS];
-extern char *get_json_value_pointer[MAX_RECORDS];
+extern char* get_json_key_pointer[MAX_RECORDS];
+extern char* get_json_value_pointer[MAX_RECORDS];
 //読み込んだ単語数
 extern int get_max_words;
 
 //グローバル関数のプロトタイプ宣言
 int parse_json(void);
+int english_notebook(void);
 int question(void);
 
 #endif
