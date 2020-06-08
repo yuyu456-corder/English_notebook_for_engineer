@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
 #include "header.h"
 
 //グローバル変数の宣言
@@ -12,31 +14,35 @@ int main(void)
 	//英単語をまとめたJSONをパースする
 	parse_json();
 
-	printf("flag:0 > question_mode flag:1 > english_notes_mode \n");
-	printf("please press number key to migrate mode > ");
+	printf("press 0 -> question mode press 1 -> english notes mode \n");
+	printf("if you press ESC key, this system is exited \n");
+	printf("please press number key to migrate mode > \n");
 
-	//モード遷移用のフラグ
-	int mode_flag = 0;
 	while (1) {
 
 		//入力モードを受け付ける
-		mode_flag = getchar();
+		char mode_flag = '\0';
+		mode_flag = getch();
 
+		//入力された文字をチェックする
 		switch (mode_flag) {
-		case '0' :
+		case '0':
 			//問題解答モード
 			question();
 			break;
-		case '1' :
+		case '1':
 			//単語帳モード
 			english_notebook();
 			break;
-		//無効な値または、他のモードが終了した場合
-		default :
+		case 0x1b:
+			//システムの正常終了
+			exit(0);
+			//無効な値の場合
+		default:
 			printf("please press number key to migrate mode > \n");
 		}
 	}
-	//tmp_test
+	//tmp_memo
 	// printf("get json key: %s \n", get_json_key_pointer[1]);     //json_key
 	// printf("get json value: %s \n", get_json_value_pointer[1]); //json_value
 
