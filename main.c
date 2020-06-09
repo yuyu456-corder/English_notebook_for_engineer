@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <conio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "header.h"
 
 //グローバル変数の宣言
@@ -27,11 +28,11 @@ int main(void)
 		//入力された文字をチェックする
 		switch (mode_flag) {
 		case '0':
-			//問題解答モード
+			//問題解答モードへ移行する
 			question();
 			break;
 		case '1':
-			//単語帳モード
+			//単語帳モードへ移行する
 			english_notebook();
 			break;
 		case 0x1b:

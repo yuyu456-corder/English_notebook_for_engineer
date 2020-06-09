@@ -37,7 +37,7 @@ int english_notebook(void)
 		while (1) {
 			//Escキー押下でプログラム終了
 			if (getch() == 0x1b) {
-				printf("english_notebook mode end \n");
+				printf("english　notebook mode end \n");
 				printf("please Enter key to return main mode \n");
 				return 0;
 			}
