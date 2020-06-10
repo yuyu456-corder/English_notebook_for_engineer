@@ -1,51 +1,50 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <conio.h>
 #include "header.h"
 
-//o‘è‚·‚é–â‘è”
-#define number_of_question 10
-//o‘è‚·‚é‰ğ“š‚Ì‘I‘ğˆ‚Ì”
-#define number_of_choices 4
+//å‡ºé¡Œã™ã‚‹å•é¡Œæ•°
+#define NUMBER_OF_QUESTION 10
+//å‡ºé¡Œã™ã‚‹è§£ç­”ã®é¸æŠè‚¢ã®æ•°
+#define NUMBER_OF_CHOICES 4
 
-//ƒOƒ[ƒoƒ‹•Ï”‚ÌéŒ¾
+//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã®å®£è¨€
 char* get_json_key_pointer[MAX_RECORDS];
 char* get_json_value_pointer[MAX_RECORDS];
 int get_max_words;
 
 /*
-*@brief ‰p’PŒê‚ğ4‘ğŒ`®‚Éo‘è‚µA‰ğ“š‚ğó‚¯•t‚¯‚éŠÖ”
+*@brief è‹±å˜èªã‚’4æŠå½¢å¼ã«å‡ºé¡Œã—ã€è§£ç­”ã‚’å—ã‘ä»˜ã‘ã‚‹é–¢æ•°
 *@param void
-*@return: 0(ˆ—³íI—¹)
+*@return: 0(å‡¦ç†æ­£å¸¸çµ‚äº†)
 */
 int question(void) {
 
 	printf("==question mode== \n");
 	printf("please press number key correspond to an answer > \n");
 
-	//–â‘èo—Í—p‚Ì—”‚ğŠm•Û(‘I‘ğˆ{–â‘è)
-	int random_number[number_of_choices + 1] = { 0 };
+	//å•é¡Œå‡ºåŠ›ç”¨ã®ä¹±æ•°ã‚’ç¢ºä¿(é¸æŠè‚¢ï¼‹å•é¡Œ)
+	int random_number[NUMBER_OF_CHOICES + 1] = { 0 };
 
-	//ƒvƒƒOƒ‰ƒ€Às–ˆ‚ÉˆÙ‚È‚é‡˜‚Ì—”‚ªo—Í‚³‚ê‚é‚æ‚¤‚É‚·‚é
+	//ãƒ—ãƒ­ã‚°ãƒ©ãƒ å®Ÿè¡Œæ¯ã«ç•°ãªã‚‹é †åºã®ä¹±æ•°ãŒå‡ºåŠ›ã•ã‚Œã‚‹ã‚ˆã†ã«ã™ã‚‹
 	unsigned int current_time = (unsigned int)time(0);
 	srand(current_time);
 
 	int current_question_index = 1;
-	while (current_question_index <= number_of_question) {
+	while (current_question_index <= NUMBER_OF_QUESTION) {
 
-		//–â‘èo—Í—p‚É—”‚ğİ’è‚·‚é
-		for (int i = 0; i < number_of_choices + 1; i++) {
-			random_number[i] = (int)(rand() * (get_max_words - 1 + 1.0) / (1.0 + RAND_MAX));
-			//printf("get random number: %d \n", random_number[i]);
+		//å•é¡Œå‡ºåŠ›ç”¨ã«ä¹±æ•°ã‚’è¨­å®šã™ã‚‹(ä¸‹é™:1,ä¸Šé™:get_max_words)
+		for (int i = 0; i < NUMBER_OF_CHOICES + 1; i++) {
+			random_number[i] = 1 + (int)(rand() * (get_max_words - 1 + 1.0) / (1.0 + RAND_MAX));
 		}
-		//‘I‘ğˆ‚É‰ğ“š‚ğŠÜ‚ß‚éêŠ‚ğŒˆ‚ß‚é
-		int answer_number = (int)(rand() * (number_of_choices - 1 + 1.0) / (1.0 + RAND_MAX));
+		//é¸æŠè‚¢ã«è§£ç­”ã‚’å«ã‚ã‚‹å ´æ‰€ã‚’æ±ºã‚ã‚‹(ä¸‹é™:1,ä¸Šé™:NUMBER_OF_CHOICES)
+		int answer_number = 1 + (int)(rand() * (NUMBER_OF_CHOICES - 1 + 1.0) / (1.0 + RAND_MAX));
 
-		//‰p’PŒê‚ğ4‘ğ‚Åo—Í
+		//è‹±å˜èªã‚’4æŠã§å‡ºåŠ›
 		printf("current question number: %d, Question: %s \n", current_question_index, get_json_key_pointer[random_number[0]]);
-		for (int i = 1; i <= number_of_choices; i++) {
-			//‰ğ“š‚Ì‘I‘ğˆ‚ğo—Í
+		for (int i = 1; i <= NUMBER_OF_CHOICES; i++) {
+			//è§£ç­”ã®é¸æŠè‚¢ã‚’å‡ºåŠ›
 			if (i == answer_number) {
 				printf("%d: %s / ", i, get_json_value_pointer[random_number[0]]);
 				continue;
@@ -53,14 +52,15 @@ int question(void) {
 			printf("%d: %s / ", i, get_json_value_pointer[random_number[i]]);
 		}
 		printf("\n");
-		//ƒL[ƒ{[ƒh“ü—Í‚ğŒŸ’m‚µ‚Ä‰ğ“š‚ğo—Í‚·‚é
+		//ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›ã‚’æ¤œçŸ¥ã—ã¦è§£ç­”ã‚’å‡ºåŠ›ã™ã‚‹
 		while (1) {
-			//EscƒL[‰Ÿ‰º‚ÅƒvƒƒOƒ‰ƒ€I—¹
+			//Escã‚­ãƒ¼æŠ¼ä¸‹ã§ãƒ—ãƒ­ã‚°ãƒ©ãƒ çµ‚äº†
 			if (getch() == 0x1b) {
 				printf("english_notebook mode end \n");
 				printf("please Enter key to return main mode \n");
 				return 0;
 			}
+			//Escã‚­ãƒ¼ä»¥å¤–ã®å…¥åŠ›ã‚’æ¤œçŸ¥ã™ã‚‹
 			else if (getch() != 0x1b) {
 				printf("The answer: %s \n", get_json_value_pointer[random_number[0]]);
 				break;
@@ -72,6 +72,7 @@ int question(void) {
 	}
 
 	printf("question mode is finished! \n");
+	printf("please press any key to return main mode \n");
 
 	return 0;
 }
