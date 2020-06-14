@@ -29,3 +29,4 @@ yarn-error.log*
 #Visual Studio依存ファイル
 .vs/
 *.vcx*
+*.pdb
