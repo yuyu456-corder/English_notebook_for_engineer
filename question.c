@@ -54,16 +54,28 @@ int question(void) {
 		printf("\n");
 		//キーボード入力を検知して解答を出力する
 		while (1) {
+			char answer_flag = '\0';
+			answer_flag = getch();
 			//Escキー押下でプログラム終了
-			if (getch() == 0x1b) {
+			if (answer_flag == 0x1b) {
 				printf("english notebook mode end \n");
 				printf("please Enter key to return main mode \n");
 				return 0;
 			}
-			//Escキー以外の入力を検知する
-			else if (getch() != 0x1b) {
+			//正解のキーを検知する
+			else if (answer_flag == answer_number + '0') {
+				printf("Correct!! \n");
+				break;
+			}
+			//不正解のキーを検知する
+			else if (answer_flag >= 0x31 && answer_flag <= 0x34) {
+				printf("Incorrect... \n");
 				printf("The answer: %s \n", get_json_value_pointer[random_number[0]]);
 				break;
+			}
+			//使用しないキーは何もしない
+			else {
+				continue;
 			}
 		}
 
