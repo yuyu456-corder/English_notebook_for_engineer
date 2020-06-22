@@ -17,11 +17,11 @@ int get_max_words;
 */
 int english_notebook(void)
 {
-	printf("==english notebook mode== \n");
-	printf("when you press something key, this question of answer is outputted \n");
-	printf("if you press ESC key, this mode is exited \n");
+	printf("==English notebook mode== \n");
+	printf("When you press something key, this question of answer is outputted \n");
+	printf("If you press ESC key, this mode is exited \n");
 
-	printf("get max words: %d \n", get_max_words);
+	printf("Get max words: %d \n", get_max_words);
 
 	//プログラム実行毎に異なる順序の乱数が出力されるようにする
 	unsigned int current_time = (unsigned int)time(0);
@@ -31,14 +31,14 @@ int english_notebook(void)
 		//問題出力用に乱数を設定する
 		int random_num = (int)(rand() * (get_max_words - 1 + 1.0) / (1.0 + RAND_MAX));
 		//英単語出力
-		printf("index: %d, Question: %s \n", random_num, get_json_key_pointer[random_num]);
+		printf("Index: %d, Question: %s \n", random_num, get_json_key_pointer[random_num]);
 
 		//キーボード入力を検知して解答を出力する
 		while (1) {
 			//Escキー押下でプログラム終了
 			if (getch() == 0x1b) {
-				printf("english　notebook mode end \n");
-				printf("please Enter key to return main mode \n");
+				printf("English　notebook mode end \n");
+				printf("Please Enter key to return main mode \n");
 				return 0;
 			}
 			else if (getch() != 0x1b) {

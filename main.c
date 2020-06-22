@@ -10,14 +10,14 @@ char* get_json_value_pointer[MAX_RECORDS];
 
 int main(void)
 {
-	printf("==english note book for engineer== \n");
+	printf("==English note book for engineer== \n");
 
 	//英単語をまとめたJSONをパースする
 	parse_json();
 
-	printf("press 0 -> question mode press 1 -> english notes mode \n");
-	printf("if you press ESC key, this system is exited \n");
-	printf("please press number key to migrate mode > \n");
+	printf("Press 0 -> question mode, press 1 -> english notes mode \n");
+	printf("If you press ESC key, this system is exited \n");
+	printf("Please press number key to migrate mode > \n");
 
 	while (1) {
 
@@ -40,7 +40,7 @@ int main(void)
 			exit(0);
 			//無効な値の場合
 		default:
-			printf("please press number key to migrate mode > \n");
+			printf("Please press number key to migrate mode > \n");
 		}
 	}
 	//tmp_memo
