@@ -117,7 +117,7 @@
   "pivotal": "中枢の",
   "implicit": "暗黙の",
   "dense": "密集した",
-  "utility": "[名]効dua用、[形]実用的な",
+  "utility": "[名]効用、[形]実用的な",
   "formerly ": "以前は",
   "reuse": "再利用(する)",
   "a breeze": "容易な事（breeze:そよ風の口語的な表現になる）",
@@ -132,5 +132,10 @@
   "publish ": "出版する、発表する",
   "for that": "～という理由で",
   "correspond": "一致する",
-  "launch": "発射する"
+  "launch": "発射する",
+  "diagram": "図形、図表",
+  "shrink": "縮む",
+  "correct": "正確な",
+  "radix": "基数（各桁が取り得る値の個数、情報分野でn進数のnに当たる）",
+  "nowhere": "どこにも～ない"
 }
