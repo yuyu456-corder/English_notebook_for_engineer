@@ -13,8 +13,19 @@
 char* get_json_key_pointer[MAX_RECORDS];
 char* get_json_value_pointer[MAX_RECORDS];
 int get_max_words;
+int number_of_playing_question_mode;
 
-/*
+/**
+* 1回毎の解答モードの結果
+*/
+typedef struct {
+	int playingLogId;								//!< 結果のログを一意に判別するためのID
+	//int playTime;									//!< 解答モードをプレイした時間
+	int incorrectWordIndex[NUMBER_OF_QUESTION];		//!< 不正解だった単語のインデックス
+	double correctAnswerRate;						//!< 正答率
+} result_log_t;
+
+/**
 *@brief 英単語を4択形式に出題し、解答を受け付ける関数
 *@param void
 *@return: 0(処理正常終了)
@@ -30,6 +41,10 @@ int question(void) {
 	int correct_answer_number = 0;
 	//正答率(正解数÷問題数)
 	double correct_answer_rate = 0;
+	//間違った解答のカウンタ（インデックス）
+	int incorrect_word_of_number = 0;
+	//解答モードの結果を記録する構造体の宣言
+	result_log_t result_log = { 0,{0},0 };
 
 	//プログラム実行毎に異なる順序の乱数が出力されるようにする
 	unsigned int current_time = (unsigned int)time(0);
@@ -76,6 +91,9 @@ int question(void) {
 			else if (answer_flag >= 0x31 && answer_flag <= 0x34) {
 				printf("Incorrect... \n");
 				printf("The answer: %s \n", get_json_value_pointer[random_number[0]]);
+				//不正解になった問題のインデックスを記録する
+				result_log.incorrectWordIndex[incorrect_word_of_number] = random_number[0];
+				++incorrect_word_of_number;
 				break;
 			}
 			//使用しないキーは何もしない
@@ -90,9 +108,33 @@ int question(void) {
 
 	//正答率を計算する
 	correct_answer_rate = (double)correct_answer_number / (double)current_question_index;
+	//解答モードをプレイした回数のカウント
+	++number_of_playing_question_mode;
+
+	//今回の解答モードの成績を保存する
+	result_log.playingLogId = number_of_playing_question_mode;
+	result_log.correctAnswerRate = correct_answer_rate * 100;
 
 	printf("Question mode is finished! \n");
-	printf("Your correct answer rate is %.0f Percent \n", correct_answer_rate * 100);
+
+	//成績の表示
+	printf("Your correct answer rate is %.0f Percent \n", result_log.correctAnswerRate);
+	printf("Your play count is %d \n", result_log.playingLogId);
+	printf("Your incorrect words is shown below \n");
+
+	//不正解の単語を表示する
+	int incorrect_words_index = 0;
+	if (result_log.incorrectWordIndex[0] != 0) {
+		while (result_log.incorrectWordIndex[incorrect_words_index]) {
+			printf(">%s ", get_json_key_pointer[result_log.incorrectWordIndex[incorrect_words_index]]);
+			++incorrect_words_index;
+			printf("\n");
+		}
+	}
+	else {
+		printf("Perfect Clear!! \n");
+	}
+
 	printf("Please press any key to return main mode \n");
 
 	return 0;

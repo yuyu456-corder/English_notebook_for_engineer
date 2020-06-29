@@ -137,5 +137,14 @@
   "shrink": "縮む",
   "correct": "正確な",
   "radix": "基数（各桁が取り得る値の個数、情報分野でn進数のnに当たる）",
-  "nowhere": "どこにも～ない"
+  "nowhere": "どこにも～ない",
+  "esteem": "尊重する",
+  "efficacy": "効能",
+  "resilience": "弾性、（精神的な）回復力",
+  "invert": "反対にする",
+  "associate": "関連付ける",
+  "query": "疑問（IT界隈だとDBに対する処理を記した命令文として使われる）",
+  "enquete": "アンケート",
+  "reactive": "反応的な",
+  "either of": "いずれか"
 }
