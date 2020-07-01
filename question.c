@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include <conio.h>
+#include <string.h>
 #include "header.h"
 
 //出題する問題数
 #define NUMBER_OF_QUESTION 10
 //出題する解答の選択肢の数
 #define NUMBER_OF_CHOICES 4
+//読み込むファイルの一行の最大文字数（データ数）
+#define STR_MAX_ROW 1000
 
 //グローバル変数の宣言
 char* get_json_key_pointer[MAX_RECORDS];
@@ -47,11 +50,12 @@ int question(void) {
 	int incorrect_words_index = 0;
 	//解答モードの結果を記録する構造体の宣言
 	result_log_t result_log = { 0,{0},0 };
+	//CSVファイルから文字を読み込む配列
+	char get_str[256];
 
 	//読み込むファイルの設定
 	FILE* fp_log_write;
 	fp_log_write = fopen("play_data_of_question_mode.csv", "a");
-
 	//ファイルのオープンに失敗した場合
 	if (fp_log_write == NULL) {
 		printf("error: can't open log file... \n");
@@ -61,6 +65,39 @@ int question(void) {
 	//プログラム実行毎に異なる順序の乱数が出力されるようにする
 	unsigned int current_time = (unsigned int)time(0);
 	srand(current_time);
+
+	int str_max_row = STR_MAX_ROW;
+	//CSV読み込み時に使用する一時的な変数
+	int read_csv_index = 0;
+	int read_csv_data[] = { 0 };
+	char tmp_chr[256];
+	//CSVファイルからゲーム成績を取得する
+	//CSVファイル内は英数字しか入力してないのでマルチバイト文字は考慮していない
+	while (fp_log_write == NULL) {
+		//ヘッダ部分は成績として読み込まないようにする
+		if (read_csv_index == 0) {
+			//ヘッダ部分を読み込んで1行分ポインタをずらす
+			fgets(tmp_chr, str_max_row,fp_log_write);
+			continue;
+		}
+		//CSVファイルから1文字ずつ読み込む
+		get_str[read_csv_index] = fgetc(fp_log_write);
+		//カンマを検知した場合
+		if (get_str[read_csv_index] == 0x4c) {
+			//カンマ以前に読み込んだ値を取得する
+		//左波括弧を検知した場合
+		}
+		else if (get_str[read_csv_index] == 0x7b) {
+			//間違った単語を宣言した構造体に取得していく
+		}
+		//改行コードを検知した場合
+		else if (get_str[read_csv_index] == '\n') {
+			read_csv_index == 0;
+			continue;
+		}
+		//次の1文字を受け入れる為にインデックスをずらす
+		++read_csv_index;
+	}
 
 	int current_question_index = 0;
 	while (current_question_index < NUMBER_OF_QUESTION) {
