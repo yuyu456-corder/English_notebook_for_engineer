@@ -43,8 +43,20 @@ int question(void) {
 	double correct_answer_rate = 0;
 	//間違った解答のカウンタ（インデックス）
 	int incorrect_word_of_number = 0;
+	//間違った問題のインデックス
+	int incorrect_words_index = 0;
 	//解答モードの結果を記録する構造体の宣言
 	result_log_t result_log = { 0,{0},0 };
+
+	//読み込むファイルの設定
+	FILE* fp_log_write;
+	fp_log_write = fopen("play_data_of_question_mode.csv", "a");
+
+	//ファイルのオープンに失敗した場合
+	if (fp_log_write == NULL) {
+		printf("error: can't open log file... \n");
+		return -1;
+	}
 
 	//プログラム実行毎に異なる順序の乱数が出力されるようにする
 	unsigned int current_time = (unsigned int)time(0);
@@ -117,25 +129,44 @@ int question(void) {
 
 	printf("Question mode is finished! \n");
 
-	//成績の表示
+	//今回の成績の表示
 	printf("Your correct answer rate is %.0f Percent \n", result_log.correctAnswerRate);
 	printf("Your play count is %d \n", result_log.playingLogId);
 	printf("Your incorrect words is shown below \n");
 
-	//不正解の単語を表示する
-	int incorrect_words_index = 0;
+	//今回の成績をCSVファイルに書き出す
+	/**
+	*CSVファイルの形式：{"id(int), clearRate(int), inccorentWordIndex(array)"}
+	*/
+	fprintf(fp_log_write, "%d,", result_log.playingLogId);
+	fprintf(fp_log_write, "%.0f,", result_log.correctAnswerRate);
+	fprintf(fp_log_write, "{");
+	//不正解の単語が一つでもあった場合
 	if (result_log.incorrectWordIndex[0] != 0) {
 		while (result_log.incorrectWordIndex[incorrect_words_index]) {
+			fprintf(fp_log_write, "%d", result_log.incorrectWordIndex[incorrect_words_index]);
+			//間違った解答のArrayの要素が最終かどうかを検知する
+			if (result_log.incorrectWordIndex[incorrect_words_index + 1] != 0) {
+				fprintf(fp_log_write, ",");
+			}
+			else {
+				fprintf(fp_log_write, "}\n");
+			}
+			//不正解の単語を表示する
 			printf(">%s ", get_json_key_pointer[result_log.incorrectWordIndex[incorrect_words_index]]);
 			++incorrect_words_index;
 			printf("\n");
 		}
 	}
+	//不正解の単語が無かった（全問正解）場合
 	else {
+		fprintf(fp_log_write, "}\n");
 		printf("Perfect Clear!! \n");
 	}
 
 	printf("Please press any key to return main mode \n");
+
+	fclose(fp_log_write);
 
 	return 0;
 }

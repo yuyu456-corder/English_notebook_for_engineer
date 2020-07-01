@@ -11,15 +11,15 @@
 #define INPUT_MAX_RECORDS 5
 
 //JSONの型を一意に判別できるようにJSON_TYPE型を定義
-typedef enum
-{
-	TYPE_STRING,
-	TYPE_INT,
-	TYPE_NULL,
-	TYPE_BOOLEAN,
-	TYPE_OBJECT,
-	TYPE_ARRAY
-} JSON_TYPE;
+// typedef enum
+// {
+// 	TYPE_STRING,
+// 	TYPE_INT,
+// 	TYPE_NULL,
+// 	TYPE_BOOLEAN,
+// 	TYPE_OBJECT,
+// 	TYPE_ARRAY
+// } json_type_t;
 
 //グローバル変数の宣言
 char* get_json_key_pointer[MAX_RECORDS];
@@ -27,7 +27,7 @@ char* get_json_value_pointer[MAX_RECORDS];
 //単語数のカウントはこのプログラムで行うためここのみ1で初期化している
 int get_max_words = 1;
 
-/*
+/**
 *@brief JSONからkeyとValueを取り出す関数
 *@param void
 *@return: 0(ファイル読み込み成功),-1(ファイル読み込み失敗)
@@ -36,10 +36,10 @@ int get_max_words = 1;
 int parse_json(void)
 {
 
-	FILE* fp;
+	FILE* fp_json_note_read;
 	//読み込むファイルの設定
 	char* file_name = "english_notebook.json";
-	fp = fopen(file_name, "r+");
+	fp_json_note_read = fopen(file_name, "r+");
 
 	/*
 	*読み込むファイルの文字列を格納する配列
@@ -48,9 +48,9 @@ int parse_json(void)
 	char get_str[256][256];
 
 	//JSONの型を判別する用の型を定義する
-	JSON_TYPE check_type;
+	// JSON_TYPE check_type;
 
-	if (fp != NULL)
+	if (fp_json_note_read != NULL)
 	{
 
 		/*
@@ -58,7 +58,7 @@ int parse_json(void)
 		*その1行からJSON(value)の値を取得する
 		*/
 		int str_max_row = STR_MAX_ROW;
-		for (int index = 0; fgets(get_str[index], str_max_row, fp) != NULL; index++)
+		for (int index = 0; fgets(get_str[index], str_max_row, fp_json_note_read) != NULL; index++)
 		{
 			printf("============================================================\n");
 			printf("index:%d \n", index);
@@ -155,7 +155,7 @@ int parse_json(void)
 		// printf("check value get: %s \n",get_json_value_pointer[k+3]); //same as above
 
 		printf("==file inputting process done== \n");
-		fclose(fp);
+		fclose(fp_json_note_read);
 
 		return 0;
 	}
