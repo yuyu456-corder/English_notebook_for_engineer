@@ -9,14 +9,11 @@
 #define NUMBER_OF_QUESTION 10
 //出題する解答の選択肢の数
 #define NUMBER_OF_CHOICES 4
-//読み込むファイルの一行の最大文字数（データ数）
-#define STR_MAX_ROW 1000
 
 //グローバル変数の宣言
 char* get_json_key_pointer[MAX_RECORDS];
 char* get_json_value_pointer[MAX_RECORDS];
 int get_max_words;
-int number_of_playing_question_mode;
 
 /**
 * 1回毎の解答モードの結果
@@ -51,11 +48,18 @@ int question(void) {
 	//解答モードの結果を記録する構造体の宣言
 	result_log_t result_log = { 0,{0},0 };
 	//CSVファイルから文字を読み込む配列
-	char get_str[256];
+	char read_csv_char[256] = { '\0' };
+	//CSVファイルを読み込む際のカンマのカウンタ
+	int read_csv_conmma_count = 0;
+	//CSVファイル読み込み時にバッファ用の配列のデータサイズ
+	int buffer_size_read_csv = 0;
+	//モードをプレイした時に間違えた単語を保存する
+	int incorrect_word_index[NUMBER_OF_QUESTION] = { 0 };
 
-	//読み込むファイルの設定
+	//読み込む・書きこむファイルの設定
 	FILE* fp_log_write;
-	fp_log_write = fopen("play_data_of_question_mode.csv", "a");
+	char* file_name = "play_data_of_question_mode.csv";
+	fp_log_write = fopen(file_name, "a+");
 	//ファイルのオープンに失敗した場合
 	if (fp_log_write == NULL) {
 		printf("error: can't open log file... \n");
@@ -66,37 +70,88 @@ int question(void) {
 	unsigned int current_time = (unsigned int)time(0);
 	srand(current_time);
 
-	int str_max_row = STR_MAX_ROW;
-	//CSV読み込み時に使用する一時的な変数
-	int read_csv_index = 0;
-	int read_csv_data[] = { 0 };
-	char tmp_chr[256];
+	//CSVから読み込んだデータを格納する時に用いるインデックス
+	int read_csv_data_index = 0;
+	//読み込んでいるCSVの現在の行数をカウントする
+	int read_csv_file_row = 0;
 	//CSVファイルからゲーム成績を取得する
 	//CSVファイル内は英数字しか入力してないのでマルチバイト文字は考慮していない
-	while (fp_log_write == NULL) {
+	//!!これだとwhileの条件文がずっと一行目を読み込みEOFが検知できない
+	for (read_csv_file_row; fgets(read_csv_char, sizeof(read_csv_char), fp_log_write) != NULL; ++read_csv_file_row) {
 		//ヘッダ部分は成績として読み込まないようにする
-		if (read_csv_index == 0) {
-			//ヘッダ部分を読み込んで1行分ポインタをずらす
-			fgets(tmp_chr, str_max_row,fp_log_write);
+		if (read_csv_file_row == 0) {
+			++read_csv_file_row;
 			continue;
 		}
 		//CSVファイルから1文字ずつ読み込む
-		get_str[read_csv_index] = fgetc(fp_log_write);
+		read_csv_char[read_csv_data_index] = fgetc(fp_log_write);
 		//カンマを検知した場合
-		if (get_str[read_csv_index] == 0x4c) {
-			//カンマ以前に読み込んだ値を取得する
-		//左波括弧を検知した場合
-		}
-		else if (get_str[read_csv_index] == 0x7b) {
-			//間違った単語を宣言した構造体に取得していく
-		}
-		//改行コードを検知した場合
-		else if (get_str[read_csv_index] == '\n') {
-			read_csv_index == 0;
-			continue;
+		if (read_csv_char[read_csv_data_index] == 0x4c) {
+			++read_csv_conmma_count;
+			//何番目のカンマかでどの要素かを検知してそれ以前に読み込んだ値をデータとして取得する
+			switch (read_csv_conmma_count) {
+				//IDを取得
+			case 1:
+				result_log.playingLogId = atoi(read_csv_char);
+				printf("result_log.playingLogId: %d \n", result_log.playingLogId);
+				//次の要素を読み込むため、読み込んだ文字列をクリアする
+				buffer_size_read_csv = strlen(read_csv_char);
+				memset(read_csv_char, '\0', buffer_size_read_csv);
+				read_csv_data_index = 0;
+				break;
+				//正答率を取得
+			case 2:
+				result_log.correctAnswerRate = atoi(read_csv_char);
+				printf("result_log.correctAnswerRate: %d \n", result_log.correctAnswerRate);
+				//読み込んだ文字列のクリア
+				buffer_size_read_csv = strlen(read_csv_char);
+				memset(read_csv_char, '\0', buffer_size_read_csv);
+				read_csv_data_index = 0;
+				break;
+				//defaultはDBに見立てたCSVの最終カラムに対する処理
+				//間違った単語のインデックスを取得
+			default:
+				//波括弧は成績データとして扱わない
+				if (read_csv_char[read_csv_data_index] == '{') {
+					//読み込んだ文字列のクリア
+					buffer_size_read_csv = strlen(read_csv_char);
+					memset(read_csv_char, '\0', buffer_size_read_csv);
+					read_csv_data_index = 0;
+					continue;
+				}
+				else if (read_csv_char[read_csv_data_index] == '}') {
+					read_csv_char[read_csv_data_index] = '\0';
+					continue;
+				}
+				//CSVの最終要素はカンマでなく改行文字で検知し取得する
+				if (read_csv_char[read_csv_data_index] == '\n') {
+					result_log.incorrectWordIndex[incorrect_words_index] = atoi(read_csv_char);
+					++incorrect_words_index;
+					printf("result_log.correctAnswerRate: %d \n", result_log.incorrectWordIndex[incorrect_words_index]);
+					//読み込んだ文字列のクリア
+					buffer_size_read_csv = strlen(read_csv_char);
+					memset(read_csv_char, '\0', buffer_size_read_csv);
+					read_csv_data_index = 0;
+					//改行文字の検知で、その行のカンマを全て検知した事が分かったためカウンタをリセットする
+					read_csv_conmma_count = 0;
+					++read_csv_file_row;
+				//最終要素以外は通常通りカンマで検知し取得する
+				}
+				else {
+					result_log.incorrectWordIndex[incorrect_words_index] = atoi(read_csv_char);
+					++incorrect_words_index;
+					printf("result_log.correctAnswerRate: %d \n", result_log.incorrectWordIndex[incorrect_words_index]);
+					//読み込んだ文字列のクリア
+					buffer_size_read_csv = strlen(read_csv_char);
+					memset(read_csv_char, '\0', buffer_size_read_csv);
+					read_csv_data_index = 0;
+				}
+			}
 		}
 		//次の1文字を受け入れる為にインデックスをずらす
-		++read_csv_index;
+		++read_csv_data_index;
+		//次の行のデータを受け入れるためにインデックスを削除する
+		incorrect_words_index = 0;
 	}
 
 	int current_question_index = 0;
@@ -141,7 +196,7 @@ int question(void) {
 				printf("Incorrect... \n");
 				printf("The answer: %s \n", get_json_value_pointer[random_number[0]]);
 				//不正解になった問題のインデックスを記録する
-				result_log.incorrectWordIndex[incorrect_word_of_number] = random_number[0];
+				incorrect_word_index[incorrect_word_of_number] = random_number[0];
 				++incorrect_word_of_number;
 				break;
 			}
@@ -158,39 +213,35 @@ int question(void) {
 	//正答率を計算する
 	correct_answer_rate = (double)correct_answer_number / (double)current_question_index;
 	//解答モードをプレイした回数のカウント
-	++number_of_playing_question_mode;
-
-	//今回の解答モードの成績を保存する
-	result_log.playingLogId = number_of_playing_question_mode;
-	result_log.correctAnswerRate = correct_answer_rate * 100;
+	++result_log.playingLogId;
 
 	printf("Question mode is finished! \n");
 
 	//今回の成績の表示
-	printf("Your correct answer rate is %.0f Percent \n", result_log.correctAnswerRate);
+	printf("Your correct answer rate is %.0f Percent \n", correct_answer_rate * 100);
 	printf("Your play count is %d \n", result_log.playingLogId);
 	printf("Your incorrect words is shown below \n");
 
-	//今回の成績をCSVファイルに書き出す
 	/**
+	*今回の成績をCSVファイルに書き出す
 	*CSVファイルの形式：{"id(int), clearRate(int), inccorentWordIndex(array)"}
 	*/
 	fprintf(fp_log_write, "%d,", result_log.playingLogId);
-	fprintf(fp_log_write, "%.0f,", result_log.correctAnswerRate);
+	fprintf(fp_log_write, "%.0f,", correct_answer_rate * 100);
 	fprintf(fp_log_write, "{");
 	//不正解の単語が一つでもあった場合
-	if (result_log.incorrectWordIndex[0] != 0) {
-		while (result_log.incorrectWordIndex[incorrect_words_index]) {
-			fprintf(fp_log_write, "%d", result_log.incorrectWordIndex[incorrect_words_index]);
+	if (incorrect_word_index[0] != 0) {
+		while (incorrect_word_index[incorrect_words_index]) {
+			fprintf(fp_log_write, "%d", incorrect_word_index[incorrect_words_index]);
 			//間違った解答のArrayの要素が最終かどうかを検知する
-			if (result_log.incorrectWordIndex[incorrect_words_index + 1] != 0) {
+			if (incorrect_word_index[incorrect_words_index + 1] != 0) {
 				fprintf(fp_log_write, ",");
 			}
 			else {
 				fprintf(fp_log_write, "}\n");
 			}
 			//不正解の単語を表示する
-			printf(">%s ", get_json_key_pointer[result_log.incorrectWordIndex[incorrect_words_index]]);
+			printf(">%s ", get_json_key_pointer[incorrect_word_index[incorrect_words_index]]);
 			++incorrect_words_index;
 			printf("\n");
 		}

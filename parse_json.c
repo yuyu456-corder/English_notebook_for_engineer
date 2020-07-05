@@ -36,8 +36,8 @@ int get_max_words = 1;
 int parse_json(void)
 {
 
-	FILE* fp_json_note_read;
 	//読み込むファイルの設定
+	FILE* fp_json_note_read;
 	char* file_name = "english_notebook.json";
 	fp_json_note_read = fopen(file_name, "r+");
 
@@ -58,7 +58,7 @@ int parse_json(void)
 		*その1行からJSON(value)の値を取得する
 		*/
 		int str_max_row = STR_MAX_ROW;
-		for (int index = 0; fgets(get_str[index], str_max_row, fp_json_note_read) != NULL; index++)
+		for (int index = 0; fgets(get_str[index], str_max_row, fp_json_note_read) != NULL; ++index)
 		{
 			printf("============================================================\n");
 			printf("index:%d \n", index);

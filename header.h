@@ -11,8 +11,6 @@ extern char* get_json_key_pointer[MAX_RECORDS];
 extern char* get_json_value_pointer[MAX_RECORDS];
 //読み込んだ単語数
 extern int get_max_words;
-//プレイ回数
-extern int number_of_playing_question_mode;
 
 //グローバル関数のプロトタイプ宣言
 int parse_json(void);
