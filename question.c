@@ -9,6 +9,8 @@
 #define NUMBER_OF_QUESTION 10
 //出題する解答の選択肢の数
 #define NUMBER_OF_CHOICES 4
+//成績データのCSVファイルの許容する読み込み行数
+#define MAX_READ_CSV 100
 
 //グローバル変数の宣言
 char* get_json_key_pointer[MAX_RECORDS];
@@ -48,7 +50,7 @@ int question(void) {
 	//解答モードの結果を記録する構造体の宣言
 	result_log_t result_log = { 0,{0},0 };
 	//CSVファイルから文字を読み込む配列
-	char read_csv_char[256] = { '\0' };
+	char read_csv_char[MAX_READ_CSV][256] = { '\0' };
 	//CSVファイルを読み込む際のカンマのカウンタ
 	int read_csv_conmma_count = 0;
 	//CSVファイル読み込み時にバッファ用の配列のデータサイズ
@@ -71,89 +73,83 @@ int question(void) {
 	srand(current_time);
 
 	//CSVから読み込んだデータを格納する時に用いるインデックス
-	int read_csv_data_index = 0;
+	//rowは行を管理、colは列を管理
+	int read_csv_data_index_row = 0;
+	int read_csv_data_index_col = 0;
 	//読み込んでいるCSVの現在の行数をカウントする
 	int read_csv_file_row = 0;
 	//CSVファイルからゲーム成績を取得する
 	//CSVファイル内は英数字しか入力してないのでマルチバイト文字は考慮していない
-	//!!これだとwhileの条件文がずっと一行目を読み込みEOFが検知できない
-	for (read_csv_file_row; fgets(read_csv_char, sizeof(read_csv_char), fp_log_write) != NULL; ++read_csv_file_row) {
+	for (read_csv_file_row; fgets(read_csv_char[read_csv_file_row], sizeof(read_csv_char), fp_log_write) != NULL; ++read_csv_file_row) {
 		//ヘッダ部分は成績として読み込まないようにする
 		if (read_csv_file_row == 0) {
 			++read_csv_file_row;
 			continue;
 		}
-		//CSVファイルから1文字ずつ読み込む
-		read_csv_char[read_csv_data_index] = fgetc(fp_log_write);
-		//カンマを検知した場合
-		if (read_csv_char[read_csv_data_index] == 0x4c) {
-			++read_csv_conmma_count;
-			//何番目のカンマかでどの要素かを検知してそれ以前に読み込んだ値をデータとして取得する
-			switch (read_csv_conmma_count) {
+		//1つ目の差分ポインタのアドレス
+		char* first_diff_addres = 0;
+		//2つ目の差分ポインタのアドレス
+		char* second_diff_addres = 0;
+		//CSVファイルから読み取った1行から1文字参照していく
+		while(read_csv_data_index_col < sizeof(read_csv_char[read_csv_data_index_row])){
+			//カンマを検知した場合
+			if (read_csv_char[read_csv_data_index_row][read_csv_data_index_col] == ',') {
+				++read_csv_conmma_count;
+				//ポインタの差分を取って、CSVファイルの各要素を取得する
+				//データ部分の最初の要素はカンマが無いため、配列の先頭がそのまま取得する要素の始点とする
+				if (read_csv_conmma_count == 1) {
+					first_diff_addres = &(read_csv_char[read_csv_data_index_row][0]);
+				}
+				//それ以外は前回のカンマの位置を取得する要素の始点とする
+				//+1しているのはカンマのアドレスでなく要素の始点文字のアドレスを取得したいため
+				else{
+					first_diff_addres = second_diff_addres + 1;
+				}
+				//現在参照している文字を取得する要素の終点となる
+				//-1をしているのはカンマのアドレスでなく要素の最終文字のアドレスを取得したいため
+				second_diff_addres = &(read_csv_char[read_csv_data_index_row][read_csv_data_index_col-1]);
+			}
+			//最終要素を取得したいときは、差分用のポインタの取得方法が異なる
+			else if (read_csv_char[read_csv_data_index_row][read_csv_data_index_col] == '\n') {
+				//その行のカンマは全て検知したためカウンタをリセットする
+				read_csv_conmma_count == 0;
+				first_diff_addres = second_diff_addres;
+				//最終要素の次はカンマでなく改行コードでアドレスを取得する
+				second_diff_addres = strchr(read_csv_char, (int)'\n');
+			}
+			//取得したアドレスのポインタの差分から要素のデータ数を求める
+			int element_buffer_size = (int)(second_diff_addres - first_diff_addres);
+			//CSVの各要素を取得する際に用いる、一時的な変数
+			int* read_csv_char_tmp_p = (int*)read_csv_char;
+			char tmp_char[256];
+			//取得した2つのポインタの差分を元にCSVファイルの各要素を取得する
+			//何番目のカンマを検知したかで各CSVの要素のカラムを特定する
+			switch(read_csv_conmma_count){
 				//IDを取得
 			case 1:
-				result_log.playingLogId = atoi(read_csv_char);
-				printf("result_log.playingLogId: %d \n", result_log.playingLogId);
-				//次の要素を読み込むため、読み込んだ文字列をクリアする
-				buffer_size_read_csv = strlen(read_csv_char);
-				memset(read_csv_char, '\0', buffer_size_read_csv);
-				read_csv_data_index = 0;
+				//取得したい要素の先頭の文字を参照する
+				tmp_char[0] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres);
+				for (int get_tmp_char_index = 1; get_tmp_char_index < buffer_size_read_csv; ++get_tmp_char_index) {
+					//CSVの1要素分を1文字ずつ取得する
+					tmp_char[get_tmp_char_index] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres + get_tmp_char_index);
+				}
+				//IDを記録する
+				result_log.playingLogId = atoi(tmp_char);
 				break;
 				//正答率を取得
 			case 2:
-				result_log.correctAnswerRate = atoi(read_csv_char);
-				printf("result_log.correctAnswerRate: %d \n", result_log.correctAnswerRate);
-				//読み込んだ文字列のクリア
-				buffer_size_read_csv = strlen(read_csv_char);
-				memset(read_csv_char, '\0', buffer_size_read_csv);
-				read_csv_data_index = 0;
 				break;
-				//defaultはDBに見立てたCSVの最終カラムに対する処理
-				//間違った単語のインデックスを取得
-			default:
-				//波括弧は成績データとして扱わない
-				if (read_csv_char[read_csv_data_index] == '{') {
-					//読み込んだ文字列のクリア
-					buffer_size_read_csv = strlen(read_csv_char);
-					memset(read_csv_char, '\0', buffer_size_read_csv);
-					read_csv_data_index = 0;
-					continue;
-				}
-				else if (read_csv_char[read_csv_data_index] == '}') {
-					read_csv_char[read_csv_data_index] = '\0';
-					continue;
-				}
-				//CSVの最終要素はカンマでなく改行文字で検知し取得する
-				if (read_csv_char[read_csv_data_index] == '\n') {
-					result_log.incorrectWordIndex[incorrect_words_index] = atoi(read_csv_char);
-					++incorrect_words_index;
-					printf("result_log.correctAnswerRate: %d \n", result_log.incorrectWordIndex[incorrect_words_index]);
-					//読み込んだ文字列のクリア
-					buffer_size_read_csv = strlen(read_csv_char);
-					memset(read_csv_char, '\0', buffer_size_read_csv);
-					read_csv_data_index = 0;
-					//改行文字の検知で、その行のカンマを全て検知した事が分かったためカウンタをリセットする
-					read_csv_conmma_count = 0;
-					++read_csv_file_row;
-				//最終要素以外は通常通りカンマで検知し取得する
-				}
-				else {
-					result_log.incorrectWordIndex[incorrect_words_index] = atoi(read_csv_char);
-					++incorrect_words_index;
-					printf("result_log.correctAnswerRate: %d \n", result_log.incorrectWordIndex[incorrect_words_index]);
-					//読み込んだ文字列のクリア
-					buffer_size_read_csv = strlen(read_csv_char);
-					memset(read_csv_char, '\0', buffer_size_read_csv);
-					read_csv_data_index = 0;
-				}
+			default :
+				//不正解の単語を取得
 			}
+			//カンマを検知しない文字の場合は、次の文字を参照する
+			++read_csv_data_index_col;
 		}
-		//次の1文字を受け入れる為にインデックスをずらす
-		++read_csv_data_index;
+		//次の1行を参照する
+		++read_csv_data_index_row;
 		//次の行のデータを受け入れるためにインデックスを削除する
 		incorrect_words_index = 0;
 	}
-
 	int current_question_index = 0;
 	while (current_question_index < NUMBER_OF_QUESTION) {
 
