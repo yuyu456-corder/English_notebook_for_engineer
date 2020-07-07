@@ -117,11 +117,11 @@ int question(void) {
 				//最終要素の次はカンマでなく改行コードでアドレスを取得する
 				second_diff_addres = strchr(read_csv_char, (int)'\n');
 			}
-			//取得したアドレスのポインタの差分から要素のデータ数を求める
+			//取得したアドレスのポインタの差分から要素のデータサイズを求める
 			int element_buffer_size = (int)(second_diff_addres - first_diff_addres);
 			//CSVの各要素を取得する際に用いる、一時的な変数
 			int* read_csv_char_tmp_p = (int*)read_csv_char;
-			char tmp_char[256];
+			char tmp_char[256] = { '\0'};
 			//取得した2つのポインタの差分を元にCSVファイルの各要素を取得する
 			//何番目のカンマを検知したかで各CSVの要素のカラムを特定する
 			switch(read_csv_conmma_count){
@@ -129,18 +129,55 @@ int question(void) {
 			case 1:
 				//取得したい要素の先頭の文字を参照する
 				tmp_char[0] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres);
+				//CSVの1要素分を1文字ずつ取得する
 				for (int get_tmp_char_index = 1; get_tmp_char_index < buffer_size_read_csv; ++get_tmp_char_index) {
-					//CSVの1要素分を1文字ずつ取得する
 					tmp_char[get_tmp_char_index] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres + get_tmp_char_index);
 				}
 				//IDを記録する
 				result_log.playingLogId = atoi(tmp_char);
+				printf("playing log id: %d", result_log.playingLogId);
 				break;
 				//正答率を取得
 			case 2:
+				//取得したい要素の先頭の文字を参照する
+				tmp_char[0] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres);
+				//CSVの1要素分を1文字ずつ取得する
+				for (int get_tmp_char_index = 1; get_tmp_char_index < buffer_size_read_csv; ++get_tmp_char_index) {
+					tmp_char[get_tmp_char_index] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres + get_tmp_char_index);
+				}
+				//正答率を取得する
+				result_log.correctAnswerRate = atoi(tmp_char);
+				printf("playing log id: %d", result_log.correctAnswerRate);
+				break;
+			case 0:
+				//その行の最終要素の場合（動作としては不正解の単語の取得）
+				//取得したい要素の先頭の文字を参照する
+				tmp_char[0] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres);
+				//右括弧の場合は最終要素の終了を改行コードで判断しているので、右括弧自身を削除する（元のCSVファイルに影響しない）
+				char* final_element_char_p = strchr(tmp_char,(int)'\n');
+				*final_element_char_p = '\0';
+				//CSVの1要素分を1文字ずつ取得する
+				for (int get_tmp_char_index = 1; get_tmp_char_index < buffer_size_read_csv; ++get_tmp_char_index) {
+					tmp_char[get_tmp_char_index] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres + get_tmp_char_index);
+				}
+				//不正解単語の取得
+				result_log.incorrectWordIndex[incorrect_words_index] = atoi(tmp_char);
 				break;
 			default :
 				//不正解の単語を取得
+				//取得したい要素の先頭の文字を参照する
+				tmp_char[0] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres);
+				//不正解単語をまとめるためにCSVファイルに記述していいる波括弧を取得するデータの対象としない
+				if (tmp_char[0] == '{') {
+					//左波括弧をデータとして含めない
+					tmp_char[0] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres + 1);
+				}
+				//CSVの1要素分を1文字ずつ取得する
+				for (int get_tmp_char_index = 1; get_tmp_char_index < buffer_size_read_csv; ++get_tmp_char_index) {
+					tmp_char[get_tmp_char_index] = *(*(read_csv_char_tmp_p + read_csv_data_index_row) + first_diff_addres + get_tmp_char_index);
+				}
+				//不正解単語の取得
+				result_log.incorrectWordIndex[incorrect_words_index] = atoi(tmp_char);
 			}
 			//カンマを検知しない文字の場合は、次の文字を参照する
 			++read_csv_data_index_col;
