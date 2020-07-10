@@ -21,21 +21,17 @@
 // 	TYPE_ARRAY
 // } json_type_t;
 
-//グローバル変数の宣言
-char* get_json_key_pointer[MAX_RECORDS];
-char* get_json_value_pointer[MAX_RECORDS];
 //単語数のカウントはこのプログラムで行うためここのみ1で初期化している
 int get_max_words = 1;
 
 /**
 *@brief JSONからkeyとValueを取り出す関数
-*@param void
-*@return: 0(ファイル読み込み成功),-1(ファイル読み込み失敗)
+*@param parse_json_string_p 英単語と解答を保存する構造体のポインタ
+*@return: 0:正常終了 1:異常終了
 *@detail: この関数が呼ばれるとグローバル変数で配列にkeyとvalueの先頭ポインタが一行ずつ格納されていく
 */
-int parse_json(void)
+int parse_json(parse_json_string_t* parse_json_string_p)
 {
-
 	//読み込むファイルの設定
 	FILE* fp_json_note_read;
 	char* file_name = "english_notebook.json";
@@ -99,14 +95,14 @@ int parse_json(void)
 			printf("get_json_value_address: %d \n", get_json_value_address);
 
 			//1行ごとに取得したkey部分を加工する為の配列型のポインタに格納する
-			get_json_key_pointer[index] = get_json_key_address;
+			parse_json_string_p->get_json_key_pointer[index] = get_json_key_address;
 			//1行ごとに取得したvalue部分を加工する為の配列型のポインタに格納する
-			get_json_value_pointer[index] = get_json_value_address;
+			parse_json_string_p->get_json_value_pointer[index] = get_json_value_address;
 
 			//key部分を取得する
-			char* double_quotation_address_key_second = strchr(get_json_key_pointer[index], (int)'\"');
+			char* double_quotation_address_key_second = strchr(parse_json_string_p->get_json_key_pointer[index], (int)'\"');
 			*double_quotation_address_key_second = '\0';
-			printf("index: %d, get key> %s \n", index, get_json_key_pointer[index]);
+			printf("index: %d, get key> %s \n", index, parse_json_string_p->get_json_key_pointer[index]);
 
 			//取得した値部分からJSONの型を検知する
 			// switch (check_type)
@@ -123,15 +119,15 @@ int parse_json(void)
 			int buffer_counter = 0;
 
 			//1,2文字目ダブルクォーテーションのポインタを取得
-			char* double_quotation_address_string_first = strchr(get_json_value_pointer[index], (int)'\"');
-			char* double_quotation_address_string_second = strrchr(get_json_value_pointer[index], (int)'\"');
+			char* double_quotation_address_string_first = strchr(parse_json_string_p->get_json_value_pointer[index], (int)'\"');
+			char* double_quotation_address_string_second = strrchr(parse_json_string_p->get_json_value_pointer[index], (int)'\"');
 
 			//2文字目のダブルクォーテーションを削除する
 			(*double_quotation_address_string_second) = '\0';
 
 			//文字列部分を取得する
-			get_json_value_pointer[index] = double_quotation_address_string_first + 1;
-			printf("index: %d, get value string> %s \n", index, get_json_value_pointer[index]);
+			parse_json_string_p->get_json_value_pointer[index] = double_quotation_address_string_first + 1;
+			printf("index: %d, get value string> %s \n", index, parse_json_string_p->get_json_value_pointer[index]);
 
 			//単語数をカウントする
 			++get_max_words;

@@ -6,7 +6,7 @@
 #include "header.h"
 
 //読み込むファイルの一行の最大文字数（データ数）
-#define STR_MAX_ROW 1000
+#define STR_MAX_ROW 100
 //出題する問題数
 #define NUMBER_OF_QUESTION 10
 //出題する解答の選択肢の数
@@ -15,8 +15,6 @@
 #define NUMBER_OF_CSV_ELEMENTS 100
 
 //グローバル変数の宣言
-char* get_json_key_pointer[MAX_RECORDS];
-char* get_json_value_pointer[MAX_RECORDS];
 int get_max_words;
 
 /**
@@ -34,7 +32,7 @@ typedef struct {
 *@param void
 *@return: 0(処理正常終了)
 */
-int question(void) {
+int question(parse_json_string_t* parse_json_string_p) {
 
 	//問題出力用の乱数を確保(選択肢＋問題)
 	int random_number[NUMBER_OF_CHOICES + 1] = { 0 };
@@ -71,7 +69,7 @@ int question(void) {
 	//CSVファイルを文字列リテラルとして一度パースする
 	//CSVの各要素が代入に成功したかの判定を行うフラグ値
 	// !fscanfで読み込む下記の配列を初期化するとグローバル変数に設定している単語も全て初期化される
-	int tmp_get_csv_elements[NUMBER_OF_CSV_ELEMENTS][STR_MAX_ROW] = {0};
+	char tmp_get_csv_elements[NUMBER_OF_CSV_ELEMENTS][STR_MAX_ROW] = { '\0' };
 	int res_fscanf = 0;
 	while ((res_fscanf = fscanf(fp_log_write, "%[^,],%[^,],%s", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2])) != EOF) {
 		printf("parse_csv: %s %s %s \n", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2]);
@@ -96,14 +94,14 @@ int question(void) {
 		int answer_number = 1 + (int)(rand() * (NUMBER_OF_CHOICES - 1 + 1.0) / (1.0 + RAND_MAX));
 
 		//英単語を4択で出力
-		printf("Current question number: %d, Question: %s \n", current_question_index, get_json_key_pointer[random_number[0]]);
+		printf("Current question number: %d, Question: %s \n", current_question_index, parse_json_string_p->get_json_key_pointer[random_number[0]]);
 		for (int i = 1; i <= NUMBER_OF_CHOICES; i++) {
 			//解答の選択肢を出力
 			if (i == answer_number) {
-				printf("%d: %s / ", i, get_json_value_pointer[random_number[0]]);
+				printf("%d: %s / ", i, parse_json_string_p->get_json_value_pointer[random_number[0]]);
 				continue;
 			}
-			printf("%d: %s / ", i, get_json_value_pointer[random_number[i]]);
+			printf("%d: %s / ", i, parse_json_string_p->get_json_value_pointer[random_number[i]]);
 		}
 		printf("\n");
 		//キーボード入力を検知して解答を出力する
@@ -125,7 +123,7 @@ int question(void) {
 			//不正解のキーを検知する
 			else if (answer_flag >= 0x31 && answer_flag <= 0x34) {
 				printf("Incorrect... \n");
-				printf("The answer: %s \n", get_json_value_pointer[random_number[0]]);
+				printf("The answer: %s \n", parse_json_string_p->get_json_value_pointer[random_number[0]]);
 				//不正解になった問題のインデックスを記録する
 				incorrect_word_index[incorrect_word_of_number] = random_number[0];
 				++incorrect_word_of_number;
@@ -176,7 +174,7 @@ int question(void) {
 				fprintf(fp_log_write, ",}\n");
 			}
 			//不正解の単語を表示する
-			printf(">%s ", get_json_key_pointer[incorrect_word_index[incorrect_words_index]]);
+			printf(">%s ", parse_json_string_p->get_json_key_pointer[incorrect_word_index[incorrect_words_index]]);
 			++incorrect_words_index;
 			printf("\n");
 		}
