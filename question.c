@@ -67,15 +67,27 @@ int question(parse_json_string_t* parse_json_string_p) {
 	*/
 	//CSVファイルからゲーム成績を取得する
 	//CSVファイルを文字列リテラルとして一度パースする
-	//CSVの各要素が代入に成功したかの判定を行うフラグ値
-	// !fscanfで読み込む下記の配列を初期化するとグローバル変数に設定している単語も全て初期化される
 	char tmp_get_csv_elements[NUMBER_OF_CSV_ELEMENTS][STR_MAX_ROW] = { '\0' };
+	char* tmp_incorrect_word = '\0';
+	//CSVの各要素が代入に成功したかの判定を行うフラグ値
 	int res_fscanf = 0;
+	printf(">get your playing data \n");
 	while ((res_fscanf = fscanf(fp_log_write, "%[^,],%[^,],%s", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2])) != EOF) {
-		printf("parse_csv: %s %s %s \n", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2]);
-		//各要素を対応する構造体に代入する
+		//printf("parse_csv: %s %s %s \n", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2]);
+		//各要素を対応する構造体に代入する、同時に成績データを元に平均正答率などの統計データを求める
+		result_log.playingLogId = atoi(tmp_get_csv_elements[0]);
+		//データのIDが0の場合データとして含まない
+		if (result_log.playingLogId == 0) {
+			continue;
+		}
+		printf("playing id: %d \n", result_log.playingLogId);
+		result_log.correctAnswerRate = atoi(tmp_get_csv_elements[1]);
+		printf("answer rate: %3.2f \n", result_log.correctAnswerRate);
+		tmp_incorrect_word = tmp_get_csv_elements[2];
+		printf("incorrect word index: %s \n", tmp_incorrect_word);
+		//不正解の単語はまだCSV形式のままなので、再帰的に同じ方法でもう一度パースを行う処理を書く
+		printf("==================================================\n");
 	}
-
 	/*
 	*問題出力とキー入力による解答を行う
 	*/
@@ -144,21 +156,20 @@ int question(parse_json_string_t* parse_json_string_p) {
 	*/
 	//正答率を計算する
 	correct_answer_rate = (double)correct_answer_number / (double)current_question_index;
-	//解答モードをプレイした回数のカウント
-	++result_log.playingLogId;
 
 	printf("Question mode is finished! \n");
+	printf("your current playing data \n");
 
 	//今回の成績の表示
-	printf("Your correct answer rate is %.0f Percent \n", correct_answer_rate * 100);
-	printf("Your play count is %d \n", result_log.playingLogId);
-	printf("Your incorrect words is shown below \n");
+	printf("correct answer rate is %.0f Percent \n", correct_answer_rate * 100);
+	printf("play count is %d \n", result_log.playingLogId);
+	printf("incorrect words is shown below \n");
 
 	/**
 	*今回の成績をCSVファイルに書き出す
 	*CSVファイルの形式：{"id(int), clearRate(int), inccorentWordIndex(array)"}
 	*/
-	fprintf(fp_log_write, "%d,", result_log.playingLogId);
+	fprintf(fp_log_write, "%d,", ++result_log.playingLogId);
 	fprintf(fp_log_write, "%.0f,", correct_answer_rate * 100);
 	fprintf(fp_log_write, "{");
 	//不正解の単語が一つでもあった場合

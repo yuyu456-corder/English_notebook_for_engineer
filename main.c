@@ -6,7 +6,7 @@
 
 int main(void)
 {
-	//JSONパース結果の構造体の宣言
+	//JSONパース結果の構造体の宣言と初期化
 	static parse_json_string_t parse_json_string = { 0,0 };
 	//引数で用いるためのJSONパース結果の構造体の宣言のポインタ
 	parse_json_string_t* parse_json_string_p = &parse_json_string;
