@@ -13,7 +13,8 @@
 #define NUMBER_OF_CHOICES 4
 //CSVファイルから読み込む最大の要素数
 #define NUMBER_OF_CSV_ELEMENTS 100
-
+//読み込むCSVファイルのカラム数
+#define READ_CSV_COLUMN 3
 //グローバル変数の宣言
 int get_max_words;
 
@@ -46,6 +47,8 @@ int question(parse_json_string_t* parse_json_string_p) {
 	int incorrect_words_index = 0;
 	//モードをプレイした時に間違えた単語を保存する
 	int incorrect_word_index[NUMBER_OF_QUESTION] = { 0 };
+	//解答モードの総プレイ回数（初期化は成績データのCSVファイルを読み込み時に行う）
+	int playing_count;
 	//解答モードの結果を記録する構造体の宣言
 	result_log_t result_log = { 0,{0},0 };
 
@@ -67,25 +70,38 @@ int question(parse_json_string_t* parse_json_string_p) {
 	*/
 	//CSVファイルからゲーム成績を取得する
 	//CSVファイルを文字列リテラルとして一度パースする
+	//read_csv_lineが0の場合は成績データがないためこの処理は必要ない
 	char tmp_get_csv_elements[NUMBER_OF_CSV_ELEMENTS][STR_MAX_ROW] = { '\0' };
 	char* tmp_incorrect_word = '\0';
 	//CSVの各要素が代入に成功したかの判定を行うフラグ値
 	int res_fscanf = 0;
+	//読み込んだCSVの行数のカウンタ
+	int current_csv_line = 1;
 	printf(">get your playing data \n");
-	while ((res_fscanf = fscanf(fp_log_write, "%[^,],%[^,],%s", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2])) != EOF) {
-		//printf("parse_csv: %s %s %s \n", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2]);
-		//各要素を対応する構造体に代入する、同時に成績データを元に平均正答率などの統計データを求める
-		result_log.playingLogId = atoi(tmp_get_csv_elements[0]);
-		//データのIDが0の場合データとして含まない
-		if (result_log.playingLogId == 0) {
+	while ((res_fscanf = fscanf(fp_log_write, "%[^,],%[^,],%s", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2])) == READ_CSV_COLUMN) {
+		printf("parse_csv: %d %s %s %s \n", res_fscanf, tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2]);
+		//ヘッダ部分はデータとして含めない
+		if (current_csv_line == 1) {
+			//CSVファイルにデータが無い場合プレイ回数は0となる
+			playing_count = 0;
+			++current_csv_line;
 			continue;
 		}
+		//各要素を対応する構造体に代入する、同時に成績データを元に平均正答率などの統計データを求める
+		//総プレイ回数（データID）の取得
+		result_log.playingLogId = atoi(tmp_get_csv_elements[0]);
+		playing_count = atoi(tmp_get_csv_elements[0]);
+		printf("read current play count: %d \n", playing_count);
 		printf("playing id: %d \n", result_log.playingLogId);
+		//正答率の取得
 		result_log.correctAnswerRate = atoi(tmp_get_csv_elements[1]);
 		printf("answer rate: %3.2f \n", result_log.correctAnswerRate);
+		//不正解の単語の取得
 		tmp_incorrect_word = tmp_get_csv_elements[2];
 		printf("incorrect word index: %s \n", tmp_incorrect_word);
 		//不正解の単語はまだCSV形式のままなので、再帰的に同じ方法でもう一度パースを行う処理を書く
+		//次の行を読み込むのでカウンタを増やす
+		++current_csv_line;
 		printf("==================================================\n");
 	}
 	/*
@@ -156,20 +172,22 @@ int question(parse_json_string_t* parse_json_string_p) {
 	*/
 	//正答率を計算する
 	correct_answer_rate = (double)correct_answer_number / (double)current_question_index;
+	//プレイ回数をカウントする
+	++playing_count;
 
 	printf("Question mode is finished! \n");
 	printf("your current playing data \n");
 
 	//今回の成績の表示
 	printf("correct answer rate is %.0f Percent \n", correct_answer_rate * 100);
-	printf("play count is %d \n", result_log.playingLogId);
+	printf("playing count is %d \n", playing_count);
 	printf("incorrect words is shown below \n");
 
 	/**
 	*今回の成績をCSVファイルに書き出す
 	*CSVファイルの形式：{"id(int), clearRate(int), inccorentWordIndex(array)"}
 	*/
-	fprintf(fp_log_write, "%d,", ++result_log.playingLogId);
+	fprintf(fp_log_write, "%d,", playing_count);
 	fprintf(fp_log_write, "%.0f,", correct_answer_rate * 100);
 	fprintf(fp_log_write, "{");
 	//不正解の単語が一つでもあった場合
@@ -182,18 +200,18 @@ int question(parse_json_string_t* parse_json_string_p) {
 				fprintf(fp_log_write, ",");
 			}
 			else {
-				fprintf(fp_log_write, ",}\n");
+				fprintf(fp_log_write, ",} \n");
 			}
 			//不正解の単語を表示する
 			printf(">%s ", parse_json_string_p->get_json_key_pointer[incorrect_word_index[incorrect_words_index]]);
 			++incorrect_words_index;
-			printf("\n");
+			printf(" \n");
 		}
 	}
 	//不正解の単語が無かった（＝全問正解）場合
 	else {
 		fprintf(fp_log_write, ",}\n");
-		printf("Perfect Clear!! \n");
+		printf("***Perfect Clear!!*** \n");
 	}
 
 	printf("Please press any key to return main mode \n");
