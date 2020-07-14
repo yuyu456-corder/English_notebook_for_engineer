@@ -5,8 +5,6 @@
 #include "header.h"
 
 //グローバル変数の宣言
-char* get_json_key_pointer[MAX_RECORDS];
-char* get_json_value_pointer[MAX_RECORDS];
 int get_max_words;
 
 /*
@@ -15,13 +13,13 @@ int get_max_words;
 *@return: 0(処理正常終了)
 *@detail: 英単語の出力、解答の出力をキー入力で交互に行う
 */
-int english_notebook(void)
+int english_notebook(parse_json_string_t* parse_json_string_p)
 {
 	printf("==English notebook mode== \n");
 	printf("When you press something key, this question of answer is outputted \n");
 	printf("If you press ESC key, this mode is exited \n");
 
-	printf("Get max words: %d \n", get_max_words);
+	printf("get max words: %d \n", get_max_words);
 
 	//プログラム実行毎に異なる順序の乱数が出力されるようにする
 	unsigned int current_time = (unsigned int)time(0);
@@ -31,7 +29,7 @@ int english_notebook(void)
 		//問題出力用に乱数を設定する
 		int random_num = (int)(rand() * (get_max_words - 1 + 1.0) / (1.0 + RAND_MAX));
 		//英単語出力
-		printf("Index: %d, Question: %s \n", random_num, get_json_key_pointer[random_num]);
+		printf("Index: %d, Question: %s \n", random_num, parse_json_string_p->get_json_key_pointer[random_num]);
 
 		//キーボード入力を検知して解答を出力する
 		while (1) {
@@ -42,7 +40,7 @@ int english_notebook(void)
 				return 0;
 			}
 			else if (getch() != 0x1b) {
-				printf("The answer: %s \n", get_json_value_pointer[random_num]);
+				printf("The answer: %s \n", parse_json_string_p->get_json_value_pointer[random_num]);
 				break;
 			}
 		}

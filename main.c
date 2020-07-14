@@ -4,18 +4,19 @@
 #include <ctype.h>
 #include "header.h"
 
-//グローバル変数の宣言
-char* get_json_key_pointer[MAX_RECORDS];
-char* get_json_value_pointer[MAX_RECORDS];
-
 int main(void)
 {
+	//JSONパース結果の構造体の宣言と初期化
+	static parse_json_string_t parse_json_string = { 0,0 };
+	//引数で用いるためのJSONパース結果の構造体の宣言のポインタ
+	parse_json_string_t* parse_json_string_p = &parse_json_string;
+
 	printf("==English note book for engineer== \n");
 
 	//英単語をまとめたJSONをパースする
-	parse_json();
+	parse_json(parse_json_string_p);
 
-	printf("Press 0 -> question mode, press 1 -> english notes mode \n");
+	printf("Press 0 -> question mode, press 1 -> English notes mode \n");
 	printf("If you press ESC key, this system is exited \n");
 	printf("Please press number key to migrate mode > \n");
 
@@ -29,11 +30,11 @@ int main(void)
 		switch (mode_flag) {
 		case '0':
 			//問題解答モードへ移行する
-			question();
+			question(parse_json_string_p);
 			break;
 		case '1':
 			//単語帳モードへ移行する
-			english_notebook();
+			english_notebook(parse_json_string_p);
 			break;
 		case 0x1b:
 			//システムの正常終了
