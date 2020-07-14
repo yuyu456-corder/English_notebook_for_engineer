@@ -97,9 +97,51 @@ int question(parse_json_string_t* parse_json_string_p) {
 		result_log.correctAnswerRate = atoi(tmp_get_csv_elements[1]);
 		printf("answer rate: %3.2f \n", result_log.correctAnswerRate);
 		//不正解の単語の取得
-		tmp_incorrect_word = tmp_get_csv_elements[2];
+		tmp_incorrect_word = tmp_get_csv_elements[2];	//e.g. {,12,21,3,}
 		printf("incorrect word index: %s \n", tmp_incorrect_word);
-		//不正解の単語はまだCSV形式のままなので、再帰的に同じ方法でもう一度パースを行う処理を書く
+		//不正解の単語はまだCSV形式のままなので、再度パースを行う
+		//構造体に代入する際に使用するインデックス
+		int data_structure_index = 0;
+		//代入すべきインデックスのデータサイズ（半角文字のみを想定しているのでそのまま文字数としても扱える）
+		int incorrect_word_index_buffer_size = 0;
+		//現在参照しているCSV形式(不正解の単語のインデックスの文字列リテラル)
+		int tmp_incorrect_word_index = 0;
+		//対象文字列を1文字ずつ参照してCSV形式の文字列リテラルをパースする
+		//半角スペースで行の末尾を検知する
+		while (*(tmp_get_csv_elements[2] + tmp_incorrect_word_index) != 0x20) {
+			//カンマを検知したら、データサイズ分だけ構造体に不正解単語のインデックスを取得する
+			if (*(tmp_get_csv_elements[2] + tmp_incorrect_word_index) == ',') {
+				//最初のカンマ検知は波括弧のみなので取得しないようにする
+				if (incorrect_word_index_buffer_size == 0) {
+					++tmp_incorrect_word_index;
+					continue;
+				}
+				char tmp_get_incorrect_word_index[256] = { '0' };
+				//カンマ検知時に直前の要素を一時変数に保存する
+				strncpy(tmp_get_incorrect_word_index, tmp_get_csv_elements[2] + tmp_incorrect_word_index - incorrect_word_index_buffer_size, incorrect_word_index_buffer_size);
+				//不正解単語のインデックスを取得
+				result_log.incorrectWordIndex[data_structure_index] = atoi(tmp_get_incorrect_word_index);
+				printf("incorrect word parse index: %d \n", result_log.incorrectWordIndex[data_structure_index]);
+				printf("incorrect word : %s \n", parse_json_string_p->get_json_value_pointer[result_log.incorrectWordIndex[data_structure_index]]);
+				//受け入れる構造体のインデックスと参照中のインデックスをずらす
+				++data_structure_index;
+				++tmp_incorrect_word_index;
+				//次の要素を読み込みたい為、文字数をリセットする
+				incorrect_word_index_buffer_size = 0;
+			//波括弧はデータに含めない
+			}
+			else if ((*(tmp_get_csv_elements[2] + tmp_incorrect_word_index) == '{') || (*(tmp_get_csv_elements[2] + tmp_incorrect_word_index) == '}')) {
+				++tmp_incorrect_word_index;
+				continue;
+			//不正解単語のインデックス部分の処理
+			}
+			else {
+				++tmp_incorrect_word_index;
+				//インデックス部分は文字数をカウントする
+				++incorrect_word_index_buffer_size;
+			}
+		}
+
 		//次の行を読み込むのでカウンタを増やす
 		++current_csv_line;
 		printf("==================================================\n");
