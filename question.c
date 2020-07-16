@@ -11,10 +11,12 @@
 #define NUMBER_OF_QUESTION 10
 //出題する解答の選択肢の数
 #define NUMBER_OF_CHOICES 4
-//CSVファイルから読み込む最大の要素数
+//成績CSVファイルから読み込む最大の要素数
 #define NUMBER_OF_CSV_ELEMENTS 100
-//読み込むCSVファイルのカラム数
+//読み込む成績CSVファイルのカラム数
 #define READ_CSV_COLUMN 3
+//読み込む成績CSVファイルから読み込む上限数
+#define MAX_READ_PLAYING_DATA 10
 //グローバル変数の宣言
 int get_max_words;
 
@@ -49,8 +51,9 @@ int question(parse_json_string_t* parse_json_string_p) {
 	int incorrect_word_index[NUMBER_OF_QUESTION] = { 0 };
 	//解答モードの総プレイ回数（初期化は成績データのCSVファイルを読み込み時に行う）
 	int playing_count;
-	//解答モードの結果を記録する構造体の宣言
-	result_log_t result_log = { 0,{0},0 };
+	//解答モードの結果を記録する構造体配列の宣言と初期化
+	result_log_t result_log[MAX_READ_PLAYING_DATA];
+	memset(&result_log, 0, sizeof(result_log));
 
 	//読み込む・書きこむファイルの設定
 	FILE* fp_log_write;
@@ -77,6 +80,8 @@ int question(parse_json_string_t* parse_json_string_p) {
 	int res_fscanf = 0;
 	//読み込んだCSVの行数のカウンタ
 	int current_csv_line = 1;
+	//成績データを代入する構造体のインデックス
+	int result_log_index = 0;
 	printf(">get your playing data \n");
 	while ((res_fscanf = fscanf(fp_log_write, "%[^,],%[^,],%s", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2])) == READ_CSV_COLUMN) {
 		printf("parse_csv: %d %s %s %s \n", res_fscanf, tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2]);
@@ -86,17 +91,21 @@ int question(parse_json_string_t* parse_json_string_p) {
 			playing_count = 0;
 			++current_csv_line;
 			continue;
+			//データの読み込み上限に達したら処理を抜ける
 		}
-		//各要素を対応する構造体に代入する、同時に成績データを元に平均正答率などの統計データを求める
+		else if (current_csv_line > MAX_READ_PLAYING_DATA) {
+			break;
+		}
+		//各要素を対応する構造体に代入する
 		//総プレイ回数（データID）の取得
-		result_log.playingLogId = atoi(tmp_get_csv_elements[0]);
+		result_log[result_log_index].playingLogId = atoi(tmp_get_csv_elements[0]);
 		playing_count = atoi(tmp_get_csv_elements[0]);
-		printf("read current play count: %d \n", playing_count);
-		printf("playing id: %d \n", result_log.playingLogId);
+		printf("result log index: %d, read current play count: %d \n", result_log_index, playing_count);
+		printf("playing id: %d \n", result_log[result_log_index].playingLogId);
 		//正答率の取得
-		result_log.correctAnswerRate = atoi(tmp_get_csv_elements[1]);
-		printf("answer rate: %3.2f \n", result_log.correctAnswerRate);
-		//不正解の単語の取得
+		result_log[result_log_index].correctAnswerRate = atoi(tmp_get_csv_elements[1]);
+		printf("result log index: %d, answer rate: %3.2f \n", result_log_index, result_log[result_log_index].correctAnswerRate);
+		//不正解単語の取得
 		tmp_incorrect_word = tmp_get_csv_elements[2];	//e.g. {,12,21,3,}
 		printf("incorrect word index: %s \n", tmp_incorrect_word);
 		//不正解の単語はまだCSV形式のままなので、再度パースを行う
@@ -120,20 +129,21 @@ int question(parse_json_string_t* parse_json_string_p) {
 				//カンマ検知時に直前の要素を一時変数に保存する
 				strncpy(tmp_get_incorrect_word_index, tmp_get_csv_elements[2] + tmp_incorrect_word_index - incorrect_word_index_buffer_size, incorrect_word_index_buffer_size);
 				//不正解単語のインデックスを取得
-				result_log.incorrectWordIndex[data_structure_index] = atoi(tmp_get_incorrect_word_index);
-				printf("incorrect word parse index: %d \n", result_log.incorrectWordIndex[data_structure_index]);
-				printf("incorrect word : %s \n", parse_json_string_p->get_json_value_pointer[result_log.incorrectWordIndex[data_structure_index]]);
+				result_log[result_log_index].incorrectWordIndex[data_structure_index] = atoi(tmp_get_incorrect_word_index);
+				printf("result log index: %d, incorrect word parse index: %d \n", result_log_index, result_log[result_log_index].incorrectWordIndex[data_structure_index]);
+				//取得したインデックスから単語を紐づける
+				printf("incorrect word : %s \n", parse_json_string_p->get_json_value_pointer[result_log[result_log_index].incorrectWordIndex[data_structure_index]]);
 				//受け入れる構造体のインデックスと参照中のインデックスをずらす
 				++data_structure_index;
 				++tmp_incorrect_word_index;
 				//次の要素を読み込みたい為、文字数をリセットする
 				incorrect_word_index_buffer_size = 0;
-			//波括弧はデータに含めない
+				//波括弧はデータに含めない
 			}
 			else if ((*(tmp_get_csv_elements[2] + tmp_incorrect_word_index) == '{') || (*(tmp_get_csv_elements[2] + tmp_incorrect_word_index) == '}')) {
 				++tmp_incorrect_word_index;
 				continue;
-			//不正解単語のインデックス部分の処理
+				//不正解単語のインデックス部分の処理
 			}
 			else {
 				++tmp_incorrect_word_index;
@@ -141,11 +151,17 @@ int question(parse_json_string_t* parse_json_string_p) {
 				++incorrect_word_index_buffer_size;
 			}
 		}
-
 		//次の行を読み込むのでカウンタを増やす
 		++current_csv_line;
+		//次の構造体に成績データを代入するのでインデックスをずらす
+		++result_log_index;
 		printf("==================================================\n");
 	}
+
+	/*
+	*読み込んだ成績データから平均正答率などの統計データを求める
+	*/
+
 	/*
 	*問題出力とキー入力による解答を行う
 	*/
