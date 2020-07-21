@@ -14,8 +14,16 @@ typedef struct {
 	char* get_json_value_pointer[MAX_RECORDS];	//!< JSONの各解答（Value）へのポインタ
 } parse_json_string_t;
 
+/**
+ * 各単語の属性（不正解回数、難易度等）をまとめた疑似DB
+ */
+typedef struct {
+	int word_id; //!<DBとして扱うためのID(UNIQUE KEYかつFOREIGN KEY)
+	int incorrect_count; //!< 不正解回数
+} word_attributes_t;
+
 //グローバル変数
-//読み込んだ単語数
+//収録単語数
 extern int get_max_words;
 
 //グローバル関数のプロトタイプ宣言
