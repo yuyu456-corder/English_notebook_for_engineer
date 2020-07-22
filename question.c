@@ -80,7 +80,7 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 	memset(s_tmp_word_attributes, 0, sizeof(element_size_of_tmp_word_attributes * get_max_words));
 	if (s_tmp_word_attributes == NULL) {
 		printf("Error: Memory allocation failed");
-		exit(0);
+		exit(1);
 	}
 
 	//読み込む・書きこむファイルの設定
@@ -206,7 +206,7 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 
 		//構造体result_logにゲーム成績があるためループ処理で全ての要素を参照して集計する
 		int reference_result_log_index = 0;
-		while (result_log[reference_result_log_index].playingLogId == 0) {
+		while (result_log[reference_result_log_index].playingLogId) {
 			//正答率を加算して最終的に合計値を求める
 			sum_corrent_rate += result_log[reference_result_log_index].correctAnswerRate;
 			//不正解単語のインデックスを取得して各単語ごとに不正解数を加算していく
@@ -227,13 +227,13 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 			++reference_result_log_index;
 		}
 		//総プレイ回数の取得
-		total_play_count = reference_result_log_index + 1;
+		total_play_count = reference_result_log_index;
 		printf(">total play count: %d \n", total_play_count);
 		//正答率の平均値の計算
 		average_corrent_rate = sum_corrent_rate / (double)total_play_count;
-		printf(">average correct rate: %f3.2 \n", average_corrent_rate);
+		printf(">average correct rate: %.2f \n", average_corrent_rate);
 		//不正解が特に多かった単語の表示（表示上限はTOP_OF_INCORRECT_WORDSで設定）
-		printf(">top of incorrect words is shown below \n");
+		// printf(">top of incorrect words is shown below \n");
 		//不正解数を元にコピーした構造体を昇順にソートする（コピーは元の構造体を壊さないようにするため）
 		//&tmp_word_attributes = s_word_attributes;
 		//使用中の構造体のデータ数を計算する
@@ -354,7 +354,7 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 	//不正解の単語が無かった（＝全問正解）場合
 	else {
 		fprintf(fp_log_write, ",}\n");
-		printf("***Perfect Clear!!*** \n");
+		printf("**Perfect Clear!!** \n");
 	}
 
 	printf("Please press any key to return main mode \n");

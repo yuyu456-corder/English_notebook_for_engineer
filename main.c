@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <conio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include "header.h"
 
 /*グローバル変数の定義*/
-int get_max_words = 0;
+int get_max_words = 1;
 
 int main(void)
 {
@@ -26,7 +27,7 @@ int main(void)
 	memset(s_word_attributes, 0, sizeof(element_size_of_word_attributes * get_max_words));
 	if (s_word_attributes == NULL) {
 		printf("Error: Memory allocation failed");
-		exit(0);
+		exit(1);
 	}
 
 	printf("Press 0 -> question mode, press 1 -> English notes mode \n");

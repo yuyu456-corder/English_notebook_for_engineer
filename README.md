@@ -1,10 +1,10 @@
-# english_notebook_for_engineer
+# English_notebook_for_engineer
 
 自分がライブラリやフレームワークの公式リファレンスを読む時に英語力の無さを痛感したため建てたプロジェクト  
 ITエンジニア特有の単語や高校英語以上レベルの単語を覚えるためのアプリケーションの作成を目指す  
 (しれっと中学レベルの単語も入ってるのは復習の為です。嘘です普通に分かりませんでした。)
 
-- [english_notebook_for_engineer](#english_notebook_for_engineer)
+- [English_notebook_for_engineer](#english_notebook_for_engineer)
   - [master に push、merge する前に(Merge Policy)](#master-に-pushmerge-する前にmerge-policy)
   - [実行方法](#実行方法)
   - [ファイル構成](#ファイル構成)
@@ -56,6 +56,7 @@ ITエンジニア特有の単語や高校英語以上レベルの単語を覚え
   - CSVファイル（`play_data_of_question_mode.csv`）に
   データID、正答率、不正解の単語のインデックスが保存される
   - 解答モードを再び開始した際にCSVファイルの内容が読み込まれる
+  - 平均解答率と、総プレイ回数が出力される
 - Visual Studio に依存されない環境
   - VSがインストールされていない環境でも実行可能
 
@@ -63,7 +64,7 @@ ITエンジニア特有の単語や高校英語以上レベルの単語を覚え
 
 - 英検、TOEIC基準で難易度のコースを分ける
   - 進捗率の可視化
-- 間違えた単語をまとめる
+- 間違えた単語を不正解数で算出し、可視化する
 
 ## 対応中の不具合
 

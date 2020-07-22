@@ -21,8 +21,8 @@
 // 	TYPE_ARRAY
 // } json_type_t;
 
-//単語数のカウントはこのプログラムで行うためここのみ1で初期化している
-int get_max_words = 1;
+/*グローバル変数の定義*/
+int get_max_words;
 
 /**
 *@brief JSONからkeyとValueを取り出す関数
@@ -138,17 +138,6 @@ int parse_json(parse_json_string_t* parse_json_string_p)
 			//   break;
 			// }
 		}
-
-		//tmp MEMO
-		// int j = 0;
-		// printf("check value lead address: %d \n",get_json_value_pointer[j+1]); //value1 lead address
-		// printf("check value lead address: %d \n",get_json_value_pointer[j+2]); //value2 lead address
-		// printf("check value lead address: %d \n",get_json_value_pointer[j+3]); //same as above
-
-		// int k = 0;
-		// printf("check value get: %s \n",get_json_value_pointer[k+1]); //value1
-		// printf("check value get: %s \n",get_json_value_pointer[k+2]); //value2
-		// printf("check value get: %s \n",get_json_value_pointer[k+3]); //same as above
 
 		printf("==file inputting process done== \n");
 		fclose(fp_json_note_read);
