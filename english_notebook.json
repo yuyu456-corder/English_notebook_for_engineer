@@ -160,5 +160,10 @@
   "henceforth": "以後、これからは",
   "expense": "費用、～費",
   "clockwise": "時計回り",
-  "counter-clockwise": "反時計回り"
+  "counter-clockwise": "反時計回り",
+  "attribute": "属性",
+  "foreign": "外国の、対外の、無関係の",
+  "foreign key": "外部キー",
+  "ascending order": "昇順",
+  "descending order": "降順"
 }
