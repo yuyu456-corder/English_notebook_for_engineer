@@ -165,5 +165,8 @@
   "foreign": "外国の、対外の、無関係の",
   "foreign key": "外部キー",
   "ascending order": "昇順",
-  "descending order": "降順"
+  "descending order": "降順",
+  "expression": "式、表現",
+  "lvalue": "左辺値",
+  "rvalue": "右辺値"
 }

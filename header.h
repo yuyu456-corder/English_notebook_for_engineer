@@ -29,6 +29,6 @@ extern int get_max_words;
 //グローバル関数のプロトタイプ宣言
 int parse_json(parse_json_string_t*);
 int english_notebook(parse_json_string_t*);
-int question(parse_json_string_t*);
+int question(parse_json_string_t*, word_attributes_t*);
 
 #endif
