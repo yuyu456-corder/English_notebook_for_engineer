@@ -11,8 +11,6 @@
 #define NUMBER_OF_QUESTION 10
 //出題する解答の選択肢の数
 #define NUMBER_OF_CHOICES 4
-//成績CSVファイルから読み込む最大の要素数
-#define NUMBER_OF_CSV_ELEMENTS 100
 //読み込む成績CSVファイルのカラム数
 #define READ_CSV_COLUMN 4
 //読み込む成績CSVファイルから読み込む上限数
@@ -20,7 +18,7 @@
 //上位いくつまでの単語を不正解の多かった単語として扱うか
 #define TOP_OF_INCORRECT_WORDS 10
 
-//グローバル変数の宣言(parse_jsonで初期化を行うためここでは行わない)
+//グローバル変数の宣言(parse_json.cで初期化を行うためここでは行わない)
 int get_max_words;
 
 /**
@@ -80,7 +78,7 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 	memset(s_tmp_word_attributes, 0, sizeof(element_size_of_tmp_word_attributes * get_max_words));
 	if (s_tmp_word_attributes == NULL) {
 		printf("Error: Memory allocation failed");
-		exit(1);
+		return -1;
 	}
 
 	//読み込む・書きこむファイルの設定
@@ -89,7 +87,7 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 	fp_log_write = fopen(file_name, "a+");
 	//ファイルのオープンに失敗した場合
 	if (fp_log_write == NULL) {
-		printf("error: can't open log file... \n");
+		printf("Error: can't open log file... \n");
 		return -1;
 	}
 
@@ -102,7 +100,7 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 	//CSVファイルからゲーム成績を取得する
 	//CSVファイルを文字列リテラルとして一度パースする
 	//read_csv_lineが0の場合は成績データがないためこの処理は必要ない
-	char tmp_get_csv_elements[NUMBER_OF_CSV_ELEMENTS][STR_MAX_ROW] = { '\0' };
+	char get_csv_elements[READ_CSV_COLUMN][STR_MAX_ROW] = { '\0' };
 	char* tmp_incorrect_word = '\0';
 	//CSVの各要素が代入に成功したかの判定を行うフラグ値
 	int res_fscanf = 0;
@@ -111,37 +109,39 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 	//成績データを代入する構造体のインデックス
 	int result_log_index = 0;
 	printf(">get your playing data \n");
-	while ((res_fscanf = fscanf(fp_log_write, "%[^,],%[^,],%[^,],%s", tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2], tmp_get_csv_elements[3])) == READ_CSV_COLUMN) {
-		printf("parse_csv: %d %s %s %s %s \n", res_fscanf, tmp_get_csv_elements[0], tmp_get_csv_elements[1], tmp_get_csv_elements[2], tmp_get_csv_elements[3]);
+	while ((res_fscanf = fscanf(fp_log_write, "%[^,],%[^,],%[^,],%s", get_csv_elements[0], get_csv_elements[1], get_csv_elements[2], get_csv_elements[3])) == READ_CSV_COLUMN) {
+		printf("parse_csv: %d %s %s %s %s \n", res_fscanf, get_csv_elements[0], get_csv_elements[1], get_csv_elements[2], get_csv_elements[3]);
 		//ヘッダ部分はデータとして含めない
 		if (current_csv_line == 1) {
 			//CSVファイルにデータが無い場合プレイ回数は0となる
 			playing_count = 0;
 			++current_csv_line;
 			continue;
-		//データの読み込み上限に達したら処理を抜ける
+			//データの読み込み上限に達したら処理を抜ける
 		}
 		else if (current_csv_line > MAX_READ_PLAYING_DATA) {
 			break;
 		}
 		//各要素を対応する構造体に代入する
 		//プレイ回数（データID）の取得
-		result_log[result_log_index].playingLogId = atoi(tmp_get_csv_elements[0]);
+		result_log[result_log_index].playingLogId = atoi(get_csv_elements[0]);
 		//次回プレイ回数の算出に用いるため別変数にも代入する
-		playing_count = atoi(tmp_get_csv_elements[0]);
+		playing_count = atoi(get_csv_elements[0]);
 		printf("result log index: %d, read current play count: %d \n", result_log_index, playing_count);
 		printf("playing id: %d \n", result_log[result_log_index].playingLogId);
 		//プレイ時刻の取得
-		result_log[result_log_index].playingDate = atol(tmp_get_csv_elements[1]);
+		result_log[result_log_index].playingDate = atol(get_csv_elements[1]);
 		//UNIX時間で取得するため時刻に換算する
 		char tmp_read_time[256] = { '\0' };
-		strftime(tmp_read_time, sizeof(tmp_read_time), "%Y/%m/%d %a %H:%M:%S", localtime(&result_log[result_log_index].playingDate));
+		struct tm tm;
+		localtime_s(&tm, &result_log[result_log_index].playingDate);
+		strftime(tmp_read_time, sizeof(tmp_read_time), "%Y/%m/%d %a %H:%M:%S", &tm);
 		printf("playing date is %s \n", tmp_read_time);
 		//正答率の取得
-		result_log[result_log_index].correctAnswerRate = atoi(tmp_get_csv_elements[2]);
+		result_log[result_log_index].correctAnswerRate = atoi(get_csv_elements[2]);
 		printf("result log index: %d, answer rate: %3.2f \n", result_log_index, result_log[result_log_index].correctAnswerRate);
 		//不正解単語の取得
-		tmp_incorrect_word = tmp_get_csv_elements[3];	//e.g. {,12,21,3,}
+		tmp_incorrect_word = get_csv_elements[3];	//e.g. {,12,21,3,}
 		printf("incorrect word index: %s \n", tmp_incorrect_word);
 		//不正解の単語はまだCSV形式のままなので、再度パースを行う
 		//構造体に代入する際に使用するインデックス
@@ -152,9 +152,9 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 		int tmp_incorrect_word_index = 0;
 		//対象文字列を1文字ずつ参照してCSV形式の文字列リテラルをパースする
 		//半角スペースで行の末尾を検知する
-		while (*(tmp_get_csv_elements[3] + tmp_incorrect_word_index) != 0x20) {
+		while (*(get_csv_elements[3] + tmp_incorrect_word_index) != 0x20) {
 			//カンマを検知したら、データサイズ分だけ構造体に不正解単語のインデックスを取得する
-			if (*(tmp_get_csv_elements[3] + tmp_incorrect_word_index) == ',') {
+			if (*(get_csv_elements[3] + tmp_incorrect_word_index) == ',') {
 				//最初のカンマ検知は波括弧のみなので取得しないようにする
 				if (incorrect_word_index_buffer_size == 0) {
 					++tmp_incorrect_word_index;
@@ -162,20 +162,20 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 				}
 				char tmp_get_incorrect_word_index[256] = { '0' };
 				//カンマ検知時に直前の要素を一時変数に保存する
-				strncpy(tmp_get_incorrect_word_index, tmp_get_csv_elements[3] + tmp_incorrect_word_index - incorrect_word_index_buffer_size, incorrect_word_index_buffer_size);
+				strncpy(tmp_get_incorrect_word_index, get_csv_elements[3] + tmp_incorrect_word_index - incorrect_word_index_buffer_size, incorrect_word_index_buffer_size);
 				//不正解単語のインデックスを取得
 				result_log[result_log_index].incorrectWordIndex[data_structure_index] = atoi(tmp_get_incorrect_word_index);
 				printf("result log index: %d, incorrect word parse index: %d \n", result_log_index, result_log[result_log_index].incorrectWordIndex[data_structure_index]);
 				//取得したインデックスから単語を紐づける
-				printf("incorrect word : %s \n", parse_json_string_p->get_json_value_pointer[result_log[result_log_index].incorrectWordIndex[data_structure_index]]);
+				printf("incorrect word: %s \n", parse_json_string_p->get_json_value_pointer[result_log[result_log_index].incorrectWordIndex[data_structure_index]]);
 				//受け入れる構造体のインデックスと参照中のインデックスをずらす
 				++data_structure_index;
 				++tmp_incorrect_word_index;
-				//次の要素を読み込みたい為、文字数をリセットする
+				//次の要素を読み込みたい為、要素の文字数をリセットする
 				incorrect_word_index_buffer_size = 0;
 				//波括弧はデータに含めない
 			}
-			else if ((*(tmp_get_csv_elements[3] + tmp_incorrect_word_index) == '{') || (*(tmp_get_csv_elements[3] + tmp_incorrect_word_index) == '}')) {
+			else if ((*(get_csv_elements[3] + tmp_incorrect_word_index) == '{') || (*(get_csv_elements[3] + tmp_incorrect_word_index) == '}')) {
 				++tmp_incorrect_word_index;
 				continue;
 				//不正解単語のインデックス部分の処理
@@ -327,7 +327,9 @@ int question(parse_json_string_t* parse_json_string_p, word_attributes_t* s_word
 	//プレイ時刻の取得
 	time_t get_time = time(NULL);
 	char get_date[256] = { '\0' };
-	strftime(get_date, sizeof(get_date), "%Y/%m/%d %a %H:%M:%S", localtime(&get_time));
+	struct tm tm;
+	localtime_s(&tm, &get_time);
+	strftime(get_date, sizeof(get_date), "%Y/%m/%d %a %H:%M:%S", &tm);
 
 	printf("Question mode is finished! \n");
 	printf("your current playing data \n");
