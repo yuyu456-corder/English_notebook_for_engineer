@@ -39,7 +39,9 @@ ITエンジニア特有の単語や高校英語以上レベルの単語を覚え
 - main.c : 各関数を呼び出すメインのCファイル
   - parse_json.c : JSONをパースする関数
   - english_notebook.c : 英単語モード用の関数
-  - question.c : 問題回答用モード用の関数（未実装）
+  - question.c : 問題回答用モード用の関数
+  - calculation_score_data.c : 成績データから平均回答率等を算出する関数
+  - read_game_score_csv.c :成績データのCSVファイルを読み込む関数
 - header.h : グローバル変数などシステム共通の設定をまとめたファイル
 
 ## 実装機能
